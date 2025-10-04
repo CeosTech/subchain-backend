@@ -1,0 +1,34 @@
+# Python
+*.pyc
+__pycache__/
+
+# Django
+db.sqlite3
+/media/
+/staticfiles/
+
+# Virtualenv
+.venv/
+env/
+ENV/
+
+# Env secrets
+.env
+*.env
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Migrations
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Logs
+*.log
+
+# Coverage
+htmlcov/
+.coverage

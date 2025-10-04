@@ -1,0 +1,31 @@
+# Django & REST
+Django>=4.2
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+
+# Algorand SDK
+py-algorand-sdk
+
+# Swagger documentation
+drf-yasg
+
+# Envoi d'emails (via SMTP)
+sendgrid  # (ou à adapter selon ton fournisseur)
+python-dotenv
+
+# Gestion des dates
+pytz
+python-dateutil
+
+# Webhooks / cron jobs
+django-cron
+
+# Pour la gestion d’environnements
+python-decouple
+
+# Base de données (tu peux utiliser SQLite par défaut)
+psycopg2-binary  # Si tu passes à PostgreSQL plus tard
+
+# Optionnel : gestion des logs structurés
+loguru
