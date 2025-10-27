@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from .models import (
     Coupon,
+    CheckoutSession,
     EventLog,
     Invoice,
     InvoiceLineItem,
@@ -192,3 +193,38 @@ class EventLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventLog
         fields = "__all__"
+
+
+class CheckoutSessionSerializer(serializers.ModelSerializer):
+    plan = PlanSerializer(read_only=True)
+    plan_id = serializers.PrimaryKeyRelatedField(source="plan", queryset=Plan.objects.all(), write_only=True)
+    coupon = CouponSerializer(read_only=True)
+    coupon_id = serializers.PrimaryKeyRelatedField(
+        source="coupon", queryset=Coupon.objects.all(), write_only=True, required=False, allow_null=True
+    )
+
+    class Meta:
+        model = CheckoutSession
+        fields = (
+            "id",
+            "user",
+            "plan",
+            "plan_id",
+            "coupon",
+            "coupon_id",
+            "wallet_address",
+            "quantity",
+            "status",
+            "success_url",
+            "cancel_url",
+            "expires_at",
+            "metadata",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "user", "status", "expires_at", "created_at", "updated_at")
+        extra_kwargs = {
+            "wallet_address": {"required": True},
+            "quantity": {"min_value": 1, "default": 1},
+            "metadata": {"default": dict},
+        }

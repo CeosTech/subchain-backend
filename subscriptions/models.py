@@ -1,3 +1,5 @@
+import uuid
+from datetime import timedelta
 from decimal import Decimal
 
 from django.conf import settings
@@ -44,6 +46,12 @@ class CouponDuration(models.TextChoices):
     ONCE = "once", "Once"
     REPEATING = "repeating", "Repeating"
     FOREVER = "forever", "Forever"
+
+
+class CheckoutSessionStatus(models.TextChoices):
+    OPEN = "open", "Open"
+    COMPLETED = "completed", "Completed"
+    EXPIRED = "expired", "Expired"
 
 
 class Plan(models.Model):
@@ -229,3 +237,37 @@ class EventLog(models.Model):
 
     def __str__(self) -> str:
         return f"{self.event_type} @ {self.created_at.isoformat()}"
+
+
+class CheckoutSession(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="checkout_sessions")
+    plan = models.ForeignKey(Plan, on_delete=models.CASCADE, related_name="checkout_sessions")
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True, related_name="checkout_sessions")
+    wallet_address = models.CharField(max_length=255)
+    quantity = models.PositiveIntegerField(default=1)
+    status = models.CharField(max_length=12, choices=CheckoutSessionStatus.choices, default=CheckoutSessionStatus.OPEN)
+    success_url = models.URLField(blank=True)
+    cancel_url = models.URLField(blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=("status", "expires_at")),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.expires_at is None:
+            self.expires_at = timezone.now() + timedelta(minutes=30)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_expired(self) -> bool:
+        return self.expires_at is not None and timezone.now() >= self.expires_at
+
+    def __str__(self) -> str:
+        return f"CheckoutSession {self.id} for {self.plan.code}"

@@ -4,9 +4,20 @@ from rest_framework.response import Response
 
 from payments.services import SwapExecutionError
 from payments.models import TransactionType
-from .models import Coupon, EventLog, Invoice, InvoiceStatus, Plan, Subscription, SubscriptionStatus
+from .models import (
+    CheckoutSession,
+    CheckoutSessionStatus,
+    Coupon,
+    EventLog,
+    Invoice,
+    InvoiceStatus,
+    Plan,
+    Subscription,
+    SubscriptionStatus,
+)
 from .serializers import (
     CouponSerializer,
+    CheckoutSessionSerializer,
     EventLogSerializer,
     InvoiceSerializer,
     PlanSerializer,
@@ -14,6 +25,54 @@ from .serializers import (
     PaymentIntentSerializer,
 )
 from .services import InvoiceService, PaymentIntentService, SubscriptionLifecycleService
+
+
+def execute_subscription_checkout(
+    *,
+    user,
+    plan,
+    wallet_address: str,
+    quantity: int = 1,
+    coupon=None,
+    metadata=None,
+    transaction_type: TransactionType = TransactionType.SUBSCRIPTION,
+):
+    lifecycle = SubscriptionLifecycleService()
+    invoice_service = InvoiceService()
+    payment_service = PaymentIntentService()
+
+    lifecycle_result = lifecycle.create_subscription(
+        user=user,
+        plan=plan,
+        wallet_address=wallet_address,
+        coupon=coupon,
+        quantity=quantity,
+        metadata=metadata or {},
+    )
+    subscription = lifecycle_result.subscription
+
+    invoice_status = (
+        InvoiceStatus.DRAFT if subscription.status == SubscriptionStatus.TRIALING else InvoiceStatus.OPEN
+    )
+    invoice = invoice_service.create_invoice(
+        subscription,
+        status=invoice_status,
+        coupon=coupon,
+    )
+
+    payment_intent = None
+    payment_error = None
+    if subscription.status != SubscriptionStatus.TRIALING:
+        try:
+            payment_intent = payment_service.process_invoice(
+                invoice,
+                transaction_type=transaction_type,
+            )
+        except SwapExecutionError as exc:
+            lifecycle.mark_past_due(subscription, reason=str(exc))
+            payment_error = str(exc)
+
+    return subscription, invoice, payment_intent, payment_error
 
 
 class PlanViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,47 +102,28 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         wallet_address = validated["wallet_address"]
         metadata = validated.get("metadata", {})
 
-        lifecycle = SubscriptionLifecycleService()
-        invoice_service = InvoiceService()
-        payment_service = PaymentIntentService()
-
-        lifecycle_result = lifecycle.create_subscription(
+        subscription, invoice, payment_intent, payment_error = execute_subscription_checkout(
             user=request.user,
             plan=plan,
             wallet_address=wallet_address,
             coupon=coupon,
             quantity=quantity,
             metadata=metadata,
-        )
-        subscription = lifecycle_result.subscription
-
-        invoice_status = InvoiceStatus.DRAFT if subscription.status == SubscriptionStatus.TRIALING else InvoiceStatus.OPEN
-        invoice = invoice_service.create_invoice(
-            subscription,
-            status=invoice_status,
-            coupon=coupon,
+            transaction_type=TransactionType.SUBSCRIPTION,
         )
 
-        payment_intent = None
-        payment_error = None
-        if subscription.status == SubscriptionStatus.ACTIVE and invoice.total > 0:
-            try:
-                payment_intent = payment_service.process_invoice(
-                    invoice,
-                    transaction_type=TransactionType.SUBSCRIPTION,
-                )
-            except SwapExecutionError as exc:
-                lifecycle.mark_past_due(subscription, reason=str(exc))
-                payment_error = str(exc)
+        subscription_data = self.get_serializer(subscription).data
+        invoice_data = InvoiceSerializer(invoice, context=self.get_serializer_context()).data
+        payment_intent_data = PaymentIntentSerializer(payment_intent).data if payment_intent else None
 
         data = {
-            "subscription": self.get_serializer(subscription).data,
-            "invoice": InvoiceSerializer(invoice, context=self.get_serializer_context()).data,
-            "payment_intent": PaymentIntentSerializer(payment_intent).data if payment_intent else None,
+            "subscription": subscription_data,
+            "invoice": invoice_data,
+            "payment_intent": payment_intent_data,
         }
         if payment_error:
             data["payment_error"] = payment_error
-        headers = self.get_success_headers(data["subscription"])
+        headers = self.get_success_headers(subscription_data)
         return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
     @action(detail=True, methods=["post"])
@@ -142,3 +182,58 @@ class EventLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = EventLog.objects.all()
     serializer_class = EventLogSerializer
     permission_classes = [permissions.IsAdminUser]
+
+
+class CheckoutSessionViewSet(viewsets.ModelViewSet):
+    serializer_class = CheckoutSessionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return CheckoutSession.objects.all()
+        return CheckoutSession.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=["post"])
+    def confirm(self, request, pk=None):
+        session = self.get_object()
+
+        if session.status == CheckoutSessionStatus.COMPLETED:
+            return Response({"detail": "Session already completed."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if session.is_expired:
+            session.status = CheckoutSessionStatus.EXPIRED
+            session.save(update_fields=["status", "updated_at"])
+            return Response({"detail": "Session expired."}, status=status.HTTP_400_BAD_REQUEST)
+
+        subscription, invoice, payment_intent, payment_error = execute_subscription_checkout(
+            user=session.user,
+            plan=session.plan,
+            wallet_address=session.wallet_address,
+            coupon=session.coupon,
+            quantity=session.quantity,
+            metadata=session.metadata,
+            transaction_type=TransactionType.SUBSCRIPTION,
+        )
+
+        if payment_error:
+            data = {
+                "subscription": SubscriptionSerializer(subscription, context=self.get_serializer_context()).data,
+                "invoice": InvoiceSerializer(invoice, context=self.get_serializer_context()).data,
+                "payment_intent": PaymentIntentSerializer(payment_intent).data if payment_intent else None,
+                "payment_error": payment_error,
+            }
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+        session.status = CheckoutSessionStatus.COMPLETED
+        session.save(update_fields=["status", "updated_at"])
+
+        data = {
+            "subscription": SubscriptionSerializer(subscription, context=self.get_serializer_context()).data,
+            "invoice": InvoiceSerializer(invoice, context=self.get_serializer_context()).data,
+            "payment_intent": PaymentIntentSerializer(payment_intent).data if payment_intent else None,
+        }
+        return Response(data, status=status.HTTP_200_OK)

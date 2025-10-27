@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from payments.models import Transaction
+from notifications.models import Notification
 from subscriptions.models import (
     Coupon,
     CurrencyChoices,
@@ -24,6 +25,9 @@ from subscriptions.services import EventRecorder, InvoiceService, PaymentIntentS
 
 class SubscriptionLifecycleServiceTests(TestCase):
     def setUp(self):
+        self.override_email = self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+        self.override_email.enable()
+        self.addCleanup(self.override_email.disable)
         self.plan = Plan.objects.create(
             code="starter",
             name="Starter",
@@ -51,6 +55,7 @@ class SubscriptionLifecycleServiceTests(TestCase):
         self.assertEqual(subscription.status, SubscriptionStatus.TRIALING)
         self.assertIsNotNone(subscription.trial_end_at)
         self.assertTrue(EventLog.objects.filter(resource_id=subscription.id, event_type="subscription.created").exists())
+        self.assertEqual(Notification.objects.filter(user=self.user).count(), 1)
 
     def test_cancel_immediately(self):
         subscription = self.lifecycle.create_subscription(
@@ -60,10 +65,14 @@ class SubscriptionLifecycleServiceTests(TestCase):
         subscription.refresh_from_db()
         self.assertEqual(subscription.status, SubscriptionStatus.CANCELED)
         self.assertTrue(EventLog.objects.filter(event_type="subscription.canceled").exists())
+        self.assertEqual(Notification.objects.filter(user=self.user).count(), 2)
 
 
 class InvoiceServiceTests(TestCase):
     def setUp(self):
+        self.override_email = self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+        self.override_email.enable()
+        self.addCleanup(self.override_email.disable)
         self.plan = Plan.objects.create(
             code="pro",
             name="Pro",
@@ -103,6 +112,9 @@ class InvoiceServiceTests(TestCase):
 
 class PaymentIntentServiceTests(TestCase):
     def setUp(self):
+        self.override_email = self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+        self.override_email.enable()
+        self.addCleanup(self.override_email.disable)
         self.plan = Plan.objects.create(
             code="enterprise",
             name="Enterprise",
@@ -156,6 +168,7 @@ class PaymentIntentServiceTests(TestCase):
         self.assertTrue(EventLog.objects.filter(event_type="invoice.paid").exists())
         self.assertEqual(payment_intent.usdc_received, Decimal("0.950000"))
         self.assertEqual(Transaction.objects.count(), 1)
+        self.assertEqual(Notification.objects.filter(user=self.user).count(), 1)
 
     def test_process_invoice_failure(self):
         def failing_swap(_txn):
@@ -173,3 +186,4 @@ class PaymentIntentServiceTests(TestCase):
         self.invoice.refresh_from_db()
         self.assertEqual(self.invoice.status, InvoiceStatus.OPEN)
         self.assertTrue(EventLog.objects.filter(event_type="invoice.payment_failed").exists())
+        self.assertEqual(Notification.objects.filter(user=self.user).count(), 1)

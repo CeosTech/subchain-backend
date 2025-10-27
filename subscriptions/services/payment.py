@@ -11,6 +11,7 @@ from payments.models import Transaction, TransactionStatus, TransactionType
 from payments.utils import calculate_fees
 from subscriptions.models import Invoice, InvoiceStatus, PaymentIntent, PaymentIntentStatus
 from subscriptions.services.events import EventRecorder
+from subscriptions.services.notification import NotificationDispatcher
 
 
 class PaymentIntentService:
@@ -18,12 +19,14 @@ class PaymentIntentService:
         self,
         *,
         event_recorder: Optional[EventRecorder] = None,
+        notification_dispatcher: Optional[NotificationDispatcher] = None,
         swap_executor=None,
         swap_error_class=None,
         now=None,
         unit_amount_quantize: str = "0.01",
     ):
         self.events = event_recorder or EventRecorder()
+        self.notifications = notification_dispatcher or NotificationDispatcher()
         self._swap_executor = swap_executor
         self._swap_error_class = swap_error_class
         self._now = now or timezone.now
@@ -69,6 +72,7 @@ class PaymentIntentService:
                 resource_id=invoice.id,
                 payload={"error": str(exc)},
             )
+            self.notifications.invoice_payment_failed(invoice, str(exc))
             raise
         except Exception as exc:  # pragma: no cover - unexpected errors
             payment_intent.status = PaymentIntentStatus.FAILED
@@ -81,6 +85,7 @@ class PaymentIntentService:
                 resource_id=invoice.id,
                 payload={"error": str(exc)},
             )
+            self.notifications.invoice_payment_failed(invoice, str(exc))
             raise
 
         payment_intent.status = PaymentIntentStatus.SUCCEEDED
@@ -107,6 +112,7 @@ class PaymentIntentService:
                 "tx_ids": payment_intent.swap_tx_ids,
             },
         )
+        self.notifications.invoice_paid(invoice)
         return payment_intent
 
     def _mark_free_invoice(self, invoice: Invoice, payment_intent: PaymentIntent) -> PaymentIntent:
@@ -125,6 +131,7 @@ class PaymentIntentService:
             resource_id=invoice.id,
             payload={"free": True},
         )
+        self.notifications.invoice_paid(invoice)
         return payment_intent
 
     def _create_transaction(self, invoice: Invoice, transaction_type: TransactionType) -> Transaction:

@@ -10,6 +10,7 @@ from .models import (
     PlanFeature,
     PriceTier,
     Subscription,
+    CheckoutSession,
 )
 
 
@@ -72,3 +73,11 @@ class EventLogAdmin(admin.ModelAdmin):
     list_display = ("event_type", "resource_type", "resource_id", "created_at")
     list_filter = ("event_type", "resource_type")
     search_fields = ("resource_id", "event_type")
+
+
+@admin.register(CheckoutSession)
+class CheckoutSessionAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "plan", "status", "expires_at", "created_at")
+    list_filter = ("status", "plan__code")
+    search_fields = ("id", "user__email", "plan__code")
+    autocomplete_fields = ("user", "plan", "coupon")

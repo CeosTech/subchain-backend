@@ -10,6 +10,7 @@ from django.utils import timezone
 from subscriptions.models import Coupon, Plan, PlanInterval, Subscription, SubscriptionStatus
 from subscriptions.services.events import EventRecorder
 from subscriptions.services.invoicing import InvoiceService
+from subscriptions.services.notification import NotificationDispatcher
 
 
 def _calculate_period_end(start, interval: str) -> timezone.datetime:
@@ -30,10 +31,12 @@ class SubscriptionLifecycleService:
         *,
         invoice_service: Optional[InvoiceService] = None,
         event_recorder: Optional[EventRecorder] = None,
+        notification_dispatcher: Optional[NotificationDispatcher] = None,
         now=None,
     ):
         self.invoice_service = invoice_service or InvoiceService()
         self.events = event_recorder or EventRecorder()
+        self.notifications = notification_dispatcher or NotificationDispatcher()
         self._now = now or timezone.now
 
     def create_subscription(
@@ -79,6 +82,8 @@ class SubscriptionLifecycleService:
                 },
             )
 
+            self.notifications.subscription_created(subscription)
+
         return LifecycleResult(subscription=subscription)
 
     def activate_subscription(self, subscription: Subscription) -> LifecycleResult:
@@ -98,6 +103,8 @@ class SubscriptionLifecycleService:
             payload={"plan": subscription.plan.code},
         )
 
+        self.notifications.subscription_activated(subscription)
+
         return LifecycleResult(subscription=subscription)
 
     def cancel_subscription(self, subscription: Subscription, *, at_period_end: bool = True) -> LifecycleResult:
@@ -106,12 +113,14 @@ class SubscriptionLifecycleService:
             subscription.cancel_at_period_end = True
             subscription.save(update_fields=["cancel_at_period_end", "updated_at"])
             event_payload = {"cancel_at_period_end": True, "current_period_end": subscription.current_period_end}
+            self.notifications.subscription_canceled(subscription, immediate=False)
         else:
             subscription.status = SubscriptionStatus.CANCELED
             subscription.canceled_at = now
             subscription.ended_at = now
             subscription.save(update_fields=["status", "canceled_at", "ended_at", "updated_at"])
             event_payload = {"cancelled_immediately": True}
+            self.notifications.subscription_canceled(subscription, immediate=True)
 
         self.events.record(
             "subscription.canceled",
@@ -131,6 +140,7 @@ class SubscriptionLifecycleService:
             resource_id=subscription.id,
             payload={"reason": reason},
         )
+        self.notifications.subscription_past_due(subscription, reason)
         return LifecycleResult(subscription=subscription)
 
     def resume_subscription(self, subscription: Subscription) -> LifecycleResult:
@@ -158,6 +168,7 @@ class SubscriptionLifecycleService:
             resource_id=subscription.id,
             payload={"plan": subscription.plan.code},
         )
+        self.notifications.subscription_resumed(subscription)
         return LifecycleResult(subscription=subscription)
 
     def advance_period(self, subscription: Subscription) -> LifecycleResult:
@@ -183,6 +194,7 @@ class SubscriptionLifecycleService:
             resource_id=subscription.id,
             payload={"plan": subscription.plan.code},
         )
+        self.notifications.subscription_renewed(subscription)
         return LifecycleResult(subscription=subscription)
 
     def finalize_cancellation(self, subscription: Subscription) -> LifecycleResult:
@@ -199,4 +211,5 @@ class SubscriptionLifecycleService:
             resource_id=subscription.id,
             payload={"ended_at": subscription.ended_at.isoformat()},
         )
+        self.notifications.subscription_ended(subscription)
         return LifecycleResult(subscription=subscription)
