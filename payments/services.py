@@ -17,16 +17,22 @@ logger = logging.getLogger(__name__)
 
 ACCOUNT_ADDRESS = getattr(settings, "ALGORAND_ACCOUNT_ADDRESS", "")
 ACCOUNT_MNEMONIC = getattr(settings, "ALGORAND_ACCOUNT_MNEMONIC", "")
+ACCOUNT_PRIVATE_KEY = None
 
-if not ACCOUNT_ADDRESS or not ACCOUNT_MNEMONIC:
-    raise ImproperlyConfigured(
-        "ALGORAND_ACCOUNT_ADDRESS and ALGORAND_ACCOUNT_MNEMONIC must be configured to execute swaps."
-    )
 
-try:
-    ACCOUNT_PRIVATE_KEY = mnemonic.to_private_key(ACCOUNT_MNEMONIC)
-except Exception as exc:  # pragma: no cover - invalid configuration is caught during startup
-    raise ImproperlyConfigured("ALGORAND_ACCOUNT_MNEMONIC is invalid.") from exc
+def _ensure_credentials():
+    global ACCOUNT_PRIVATE_KEY
+
+    if not ACCOUNT_ADDRESS or not ACCOUNT_MNEMONIC:
+        raise ImproperlyConfigured(
+            "ALGORAND_ACCOUNT_ADDRESS and ALGORAND_ACCOUNT_MNEMONIC must be configured to execute swaps."
+        )
+
+    if ACCOUNT_PRIVATE_KEY is None:
+        try:
+            ACCOUNT_PRIVATE_KEY = mnemonic.to_private_key(ACCOUNT_MNEMONIC)
+        except Exception as exc:  # pragma: no cover - invalid configuration is caught during startup
+            raise ImproperlyConfigured("ALGORAND_ACCOUNT_MNEMONIC is invalid.") from exc
 
 MAX_SWAP_ATTEMPTS = max(1, int(getattr(settings, "ALGORAND_SWAP_MAX_RETRIES", 3)))
 RETRY_DELAY_SECONDS = float(getattr(settings, "ALGORAND_SWAP_RETRY_DELAY_SECONDS", 1.5))
@@ -77,6 +83,7 @@ def execute_algo_to_usdc_swap(transaction: Transaction) -> Dict:
                 amount_micro,
             )
 
+            _ensure_credentials()
             result = perform_swap_algo_to_usdc(
                 sender_address=ACCOUNT_ADDRESS,
                 sender_private_key=ACCOUNT_PRIVATE_KEY,

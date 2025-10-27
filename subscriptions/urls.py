@@ -1,16 +1,21 @@
-# subscriptions/urls.py
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from .views import FeatureViewSet, SubscriptionPlanViewSet, SubscriberViewSet, renew_subscription
+
+from .views import (
+    CouponViewSet,
+    EventLogViewSet,
+    InvoiceViewSet,
+    PlanViewSet,
+    SubscriptionViewSet,
+)
 
 router = DefaultRouter()
-router.register(r'features', FeatureViewSet)
-router.register(r'plans', SubscriptionPlanViewSet)
-router.register(r'subscribers', SubscriberViewSet)
+router.register(r"plans", PlanViewSet, basename="plan")
+router.register(r"subscriptions", SubscriptionViewSet, basename="subscription")
+router.register(r"invoices", InvoiceViewSet, basename="invoice")
+router.register(r"coupons", CouponViewSet, basename="coupon")
+router.register(r"events", EventLogViewSet, basename="event")
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path("renew/", renew_subscription, name="renew-subscription"),
-    path('subscribe/', SubscriberViewSet.as_view({'post': 'subscribe'}), name='subscribe'),
-    path('change-plan/', SubscriberViewSet.as_view({'post': 'change_plan'}), name='change-plan'),
+    path("", include(router.urls)),
 ]

@@ -1,57 +1,74 @@
+from decimal import Decimal
+
 from django.core.management.base import BaseCommand
-from subscriptions.models import SubscriptionPlan, Feature
+
+from subscriptions.models import Plan, PlanFeature, PlanInterval
+
 
 class Command(BaseCommand):
-    help = "Seed default subscription plans and features"
+    help = "Seed default subscription plans and features."
 
-    def handle(self, *args, **kwargs):
-        plans = [
-            {
-                "name": "Starter",
-                "description": "Perfect for beginners with limited needs",
-                "price": 0.00,
-                "currency": "ALGO",
-                "trial_days": 14,
-                "is_active": True,
-                "features": ["Basic API Access", "Email Support", "1 Project"]
-            },
-            {
-                "name": "Pro",
-                "description": "For growing businesses and builders",
-                "price": 9.99,
-                "currency": "ALGO",
-                "trial_days": 7,
-                "is_active": True,
-                "features": ["Unlimited Projects", "Priority Email Support", "Analytics Dashboard"]
-            },
-            {
-                "name": "Enterprise",
-                "description": "Advanced features and custom support",
-                "price": 49.99,
-                "currency": "ALGO",
-                "trial_days": 0,
-                "is_active": True,
-                "features": ["Custom SLAs", "Dedicated Support", "Webhook Logs", "Custom Integrations"]
-            },
-        ]
+    PLANS = [
+        {
+            "code": "starter",
+            "name": "Starter",
+            "description": "Perfect for beginners with limited needs",
+            "amount": Decimal("0"),
+            "currency": "ALGO",
+            "interval": PlanInterval.MONTH,
+            "trial_days": 14,
+            "features": [
+                "Basic API Access",
+                "Email Support",
+                "1 Project",
+            ],
+        },
+        {
+            "code": "pro",
+            "name": "Pro",
+            "description": "For growing businesses and builders",
+            "amount": Decimal("9.990000"),
+            "currency": "ALGO",
+            "interval": PlanInterval.MONTH,
+            "trial_days": 7,
+            "features": [
+                "Unlimited Projects",
+                "Priority Email Support",
+                "Analytics Dashboard",
+            ],
+        },
+        {
+            "code": "enterprise",
+            "name": "Enterprise",
+            "description": "Advanced features and custom support",
+            "amount": Decimal("49.990000"),
+            "currency": "ALGO",
+            "interval": PlanInterval.MONTH,
+            "trial_days": 0,
+            "features": [
+                "Custom SLAs",
+                "Dedicated Support",
+                "Webhook Logs",
+                "Custom Integrations",
+            ],
+        },
+    ]
 
-        for plan_data in plans:
-            plan, created = SubscriptionPlan.objects.get_or_create(
-                name=plan_data["name"],
-                defaults={
-                    "description": plan_data["description"],
-                    "price": plan_data["price"],
-                    "currency": plan_data["currency"],
-                    "trial_days": plan_data["trial_days"],
-                    "is_active": plan_data["is_active"],
-                }
+    def handle(self, *args, **options):
+        for payload in self.PLANS:
+            features = payload.pop("features", [])
+            plan, created = Plan.objects.get_or_create(
+                code=payload["code"],
+                defaults=payload,
             )
-
             if created:
-                self.stdout.write(self.style.SUCCESS(f"✅ Created plan: {plan.name}"))
-
-                for feat in plan_data["features"]:
-                    f = Feature.objects.create(name=feat, plan=plan)
-                    self.stdout.write(f"   ➕ Feature added: {f.name}")
+                self.stdout.write(self.style.SUCCESS(f"Created plan: {plan.code}"))
             else:
-                self.stdout.write(self.style.WARNING(f"⚠️ Plan already exists: {plan.name}"))
+                self.stdout.write(self.style.WARNING(f"Plan already exists: {plan.code}"))
+
+            for order, name in enumerate(features):
+                PlanFeature.objects.get_or_create(
+                    plan=plan,
+                    name=name,
+                    defaults={"sort_order": order},
+                )

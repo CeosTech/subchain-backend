@@ -1,126 +1,144 @@
-# subscriptions/views.py
-from rest_framework import viewsets, status
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.utils import timezone
 
-from payments.models import Transaction  # à créer ensuite
-from .models import Feature, SubscriptionPlan, Subscriber, PlanChangeLog
+from payments.services import SwapExecutionError
+from payments.models import TransactionType
+from .models import Coupon, EventLog, Invoice, InvoiceStatus, Plan, Subscription, SubscriptionStatus
 from .serializers import (
-    FeatureSerializer,
-    SubscriptionPlanSerializer,
-    SubscriberSerializer,
-    PlanChangeLogSerializer,
+    CouponSerializer,
+    EventLogSerializer,
+    InvoiceSerializer,
+    PlanSerializer,
+    SubscriptionSerializer,
+    PaymentIntentSerializer,
 )
+from .services import InvoiceService, PaymentIntentService, SubscriptionLifecycleService
 
-class FeatureViewSet(viewsets.ModelViewSet):
-    queryset = Feature.objects.all()
-    serializer_class = FeatureSerializer
-    permission_classes = [IsAdminUser]
 
-class SubscriptionPlanViewSet(viewsets.ModelViewSet):
-    queryset = SubscriptionPlan.objects.all()
-    serializer_class = SubscriptionPlanSerializer
-    permission_classes = [IsAdminUser]
+class PlanViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Plan.objects.filter(is_active=True)
+    serializer_class = PlanSerializer
+    permission_classes = [permissions.AllowAny]
 
-class SubscriberViewSet(viewsets.ModelViewSet):
-    queryset = Subscriber.objects.all()
-    serializer_class = SubscriberSerializer
-    permission_classes = [IsAuthenticated]
+
+class SubscriptionViewSet(viewsets.ModelViewSet):
+    serializer_class = SubscriptionSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Subscriber.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff:
+            return Subscription.objects.all()
+        return Subscription.objects.filter(user=user)
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
-    def subscribe(self, request):
-        user = request.user
-        plan_id = request.data.get('plan_id')
-        try:
-            plan = SubscriptionPlan.objects.get(id=plan_id)
-            subscriber, created = Subscriber.objects.get_or_create(user=user)
-            previous_plan = subscriber.plan
-            subscriber.plan = plan
-            subscriber.status = 'trialing' if plan.trial_days > 0 else 'active'
-            subscriber.start_date = timezone.now()
-            if plan.trial_days:
-                subscriber.trial_end_date = timezone.now() + timezone.timedelta(days=plan.trial_days)
-            subscriber.renewal_date = timezone.now() + timezone.timedelta(days=30)
-            subscriber.save()
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated = serializer.validated_data
 
-            PlanChangeLog.objects.create(
-                subscriber=subscriber,
-                previous_plan=previous_plan,
-                new_plan=plan
-            )
+        plan = validated["plan"]
+        coupon = validated.get("coupon")
+        quantity = validated.get("quantity") or 1
+        wallet_address = validated["wallet_address"]
+        metadata = validated.get("metadata", {})
 
-            return Response({"message": "Subscription updated."}, status=status.HTTP_200_OK)
-        except SubscriptionPlan.DoesNotExist:
-            return Response({"error": "Plan not found."}, status=status.HTTP_404_NOT_FOUND)
+        lifecycle = SubscriptionLifecycleService()
+        invoice_service = InvoiceService()
+        payment_service = PaymentIntentService()
 
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
-    def change_plan(self, request):
-        user = request.user
-        new_plan_id = request.data.get('plan_id')
+        lifecycle_result = lifecycle.create_subscription(
+            user=request.user,
+            plan=plan,
+            wallet_address=wallet_address,
+            coupon=coupon,
+            quantity=quantity,
+            metadata=metadata,
+        )
+        subscription = lifecycle_result.subscription
 
-        if not new_plan_id:
-            return Response({'error': 'Plan ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            new_plan = SubscriptionPlan.objects.get(id=new_plan_id)
-        except SubscriptionPlan.DoesNotExist:
-            return Response({'error': 'Subscription plan not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            subscriber = Subscriber.objects.get(user=user)
-        except Subscriber.DoesNotExist:
-            return Response({'error': 'User does not have an active subscription.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        old_plan = subscriber.plan
-        subscriber.plan = new_plan
-        subscriber.start_date = timezone.now()
-        subscriber.trial_end_date = None
-        subscriber.renewal_date = timezone.now() + timezone.timedelta(days=30)
-        subscriber.status = 'active'
-        subscriber.save()
-
-        PlanChangeLog.objects.create(
-            subscriber=subscriber,
-            previous_plan=old_plan,
-            new_plan=new_plan,
+        invoice_status = InvoiceStatus.DRAFT if subscription.status == SubscriptionStatus.TRIALING else InvoiceStatus.OPEN
+        invoice = invoice_service.create_invoice(
+            subscription,
+            status=invoice_status,
+            coupon=coupon,
         )
 
-        return Response({'message': 'Subscription plan changed successfully.'}, status=status.HTTP_200_OK)
-    
+        payment_intent = None
+        payment_error = None
+        if subscription.status == SubscriptionStatus.ACTIVE and invoice.total > 0:
+            try:
+                payment_intent = payment_service.process_invoice(
+                    invoice,
+                    transaction_type=TransactionType.SUBSCRIPTION,
+                )
+            except SwapExecutionError as exc:
+                lifecycle.mark_past_due(subscription, reason=str(exc))
+                payment_error = str(exc)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def renew_subscription(request):
-    user = request.user
-    try:
-        subscriber = Subscriber.objects.get(user=user)
-        now = timezone.now()
+        data = {
+            "subscription": self.get_serializer(subscription).data,
+            "invoice": InvoiceSerializer(invoice, context=self.get_serializer_context()).data,
+            "payment_intent": PaymentIntentSerializer(payment_intent).data if payment_intent else None,
+        }
+        if payment_error:
+            data["payment_error"] = payment_error
+        headers = self.get_success_headers(data["subscription"])
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
-        if subscriber.renewal_date and now >= subscriber.renewal_date:
-            # Crée une transaction en ALGO
-            tx = Transaction.objects.create(
-                user=user,
-                amount=subscriber.plan.price,
-                currency=subscriber.plan.currency,
-                status='pending',
-                type='renewal'
-            )
+    @action(detail=True, methods=["post"])
+    def cancel(self, request, pk=None):
+        subscription = self.get_object()
+        at_period_end = request.data.get("at_period_end", True)
+        lifecycle = SubscriptionLifecycleService()
+        result = lifecycle.cancel_subscription(subscription, at_period_end=bool(at_period_end))
+        return Response(self.get_serializer(result.subscription).data)
 
-            # ➡️ (étape suivante : déclencher le swap ALGO ➜ USDC)
+    @action(detail=True, methods=["post"])
+    def resume(self, request, pk=None):
+        subscription = self.get_object()
+        lifecycle = SubscriptionLifecycleService()
+        result = lifecycle.resume_subscription(subscription)
+        return Response(self.get_serializer(result.subscription).data)
 
-            # Prolonge l'abonnement
-            subscriber.renewal_date = now + timezone.timedelta(days=30)
-            subscriber.status = 'active'
-            subscriber.save()
+    @action(detail=True, methods=["post"])
+    def activate(self, request, pk=None):
+        subscription = self.get_object()
+        lifecycle = SubscriptionLifecycleService()
+        result = lifecycle.activate_subscription(subscription)
+        return Response(self.get_serializer(result.subscription).data)
 
-            return Response({"message": "Subscription renewed.", "transaction_id": tx.id}, status=200)
 
-        return Response({"message": "Too early for renewal."}, status=400)
+class InvoiceViewSet(viewsets.ModelViewSet):
+    serializer_class = InvoiceSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    except Subscriber.DoesNotExist:
-        return Response({"error": "Subscriber not found."}, status=404)
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Invoice.objects.all()
+        return Invoice.objects.filter(user=user)
+
+    @action(detail=True, methods=["post"])
+    def pay(self, request, pk=None):
+        invoice = self.get_object()
+        payment_service = PaymentIntentService()
+        try:
+            payment_service.process_invoice(invoice, transaction_type=TransactionType.MANUAL)
+        except SwapExecutionError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        serializer = self.get_serializer(invoice)
+        return Response(serializer.data)
+
+
+class CouponViewSet(viewsets.ModelViewSet):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+class EventLogViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = EventLog.objects.all()
+    serializer_class = EventLogSerializer
+    permission_classes = [permissions.IsAdminUser]
