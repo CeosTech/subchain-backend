@@ -62,7 +62,7 @@ class CommandTests(TestCase):
 
         subscription.refresh_from_db()
         self.assertEqual(subscription.status, SubscriptionStatus.ACTIVE)
-        self.assertFalse(mock_payment_service.called)
+        self.assertFalse(mock_payment_service.return_value.process_invoice.called)
         self.assertGreaterEqual(Notification.objects.count(), 1)
 
     @mock.patch("subscriptions.management.commands.expire_trials.PaymentIntentService")

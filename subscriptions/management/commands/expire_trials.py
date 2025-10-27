@@ -31,16 +31,19 @@ class Command(BaseCommand):
         for subscription in queryset:
             plan_amount = subscription.plan.amount
 
-            if plan_amount <= 0:
-                lifecycle.activate_subscription(subscription)
-                self.stdout.write(self.style.SUCCESS(f"Subscription {subscription.id} activated (plan free)."))
-                continue
-
             invoice = invoicing.create_invoice(
                 subscription,
                 status=InvoiceStatus.OPEN,
                 coupon=subscription.coupon,
             )
+
+            if plan_amount <= 0:
+                lifecycle.activate_subscription(subscription)
+                invoice.status = InvoiceStatus.PAID
+                invoice.paid_at = timezone.now()
+                invoice.save(update_fields=["status", "paid_at"])
+                self.stdout.write(self.style.SUCCESS(f"Subscription {subscription.id} activated (plan free)."))
+                continue
 
             try:
                 payment_service.process_invoice(invoice, transaction_type=TransactionType.SUBSCRIPTION)
