@@ -5,7 +5,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Authentification et comptes
-    path("api/auth/", include("accounts.urls")),
+    path("api/auth/", include(("accounts.urls", "accounts"), namespace="accounts")),
 
     # Gestion des abonnements
     path("api/subscriptions/", include("subscriptions.urls")),

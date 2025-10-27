@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import Notification, NotificationTemplate
@@ -14,10 +15,15 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         notification = serializer.save()
-        if notification.notification_type == 'email':
-            send_email_notification(notification)
-        elif notification.notification_type == 'sms':
-            send_sms_notification(notification)
+        sent = False
+        if notification.channel == 'email':
+            sent = send_email_notification(notification)
+        elif notification.channel == 'sms':
+            sent = send_sms_notification(notification)
+
+        if sent:
+            notification.sent_at = timezone.now()
+            notification.save(update_fields=['sent_at'])
 
 
 class NotificationTemplateViewSet(viewsets.ModelViewSet):

@@ -8,25 +8,35 @@ import logging
 logger = logging.getLogger(__name__)
 
 def send_email_notification(notification):
+    recipient = getattr(notification.user, "email", None)
+    if not recipient:
+        logger.warning("Notification %s has no associated user email.", notification.id)
+        return False
+
+    subject = notification.title or "Notification"
     try:
         send_mail(
-            subject=notification.subject or "Notification",
+            subject=subject,
             message=notification.message,
             from_email="no-reply@subchain.app",
-            recipient_list=[notification.recipient],
+            recipient_list=[recipient],
             fail_silently=False,
         )
-        logger.info(f"✅ Email sent to {notification.recipient}")
+        logger.info("Email sent to %s for notification %s", recipient, notification.id)
+        return True
     except Exception as e:
-        logger.error(f"❌ Email error: {e}")
+        logger.error("Email error for notification %s: %s", notification.id, e)
+        return False
 
 
 def send_sms_notification(notification):
     # TODO: Intégration Twilio ou autre fournisseur SMS
     try:
-        logger.info(f"📱 Simulated SMS to {notification.recipient}: {notification.message}")
+        logger.info("Simulated SMS to %s: %s", notification.user, notification.message)
+        return False  # still simulated, do not mark as sent
     except Exception as e:
-        logger.error(f"❌ SMS error: {e}")
+        logger.error("SMS error for notification %s: %s", notification.id, e)
+        return False
 
 
 def render_template_text(text, context_dict):

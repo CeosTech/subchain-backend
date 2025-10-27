@@ -50,6 +50,10 @@ class EmailVerification(models.Model):
     def __str__(self):
         return f"EmailVerification for {self.user.email}"
     
+    def is_expired(self, validity_hours=24):
+        expiry_time = self.created_at + timezone.timedelta(hours=validity_hours)
+        return timezone.now() > expiry_time
+    
 class PasswordResetToken(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     token = models.UUIDField(default=uuid.uuid4, unique=True)

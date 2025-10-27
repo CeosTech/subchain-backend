@@ -76,22 +76,27 @@ class LogoutView(APIView):
         
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def verify_email(request):
     token = request.data.get("token")
     try:
         token_obj = EmailVerification.objects.get(token=token)
+        if token_obj.is_used:
+            return Response({"error": "Token already used"}, status=status.HTTP_400_BAD_REQUEST)
         if token_obj.is_expired():
             return Response({"error": "Token expired"}, status=status.HTTP_400_BAD_REQUEST)
         user = token_obj.user
         user.is_verified = True
-        user.save()
-        token_obj.delete()
+        user.save(update_fields=["is_verified"])
+        token_obj.is_used = True
+        token_obj.save(update_fields=["is_used"])
         return Response({"success": "Email verified"}, status=status.HTTP_200_OK)
     except EmailVerification.DoesNotExist:
         return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
     
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def forgot_password(request):
     email = request.data.get('email')
     try:
@@ -103,6 +108,7 @@ def forgot_password(request):
         return Response({"error": "User not found"}, status=404)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def reset_password(request):
     token = request.data.get('token')
     new_password = request.data.get('new_password')

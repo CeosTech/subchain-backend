@@ -2,8 +2,9 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from payments.models import Transaction
-from algorand.utils import perform_swap_algo_to_usdc
+from django.utils import timezone
+
+from payments.models import Transaction, CurrencyChoices, TransactionStatus
 from .models import WebhookLog
 
 @api_view(['POST'])
@@ -15,22 +16,30 @@ def payment_webhook(request):
 
     tx_id = payload.get("transaction_id")
     try:
-        tx = Transaction.objects.get(id=tx_id, currency="ALGO", status="confirmed")
+        tx = Transaction.objects.get(id=tx_id, currency=CurrencyChoices.ALGO)
 
-        result = perform_swap_algo_to_usdc(
-            sender_address=tx.sender_address,
-            sender_private_key="YOUR_PRIVATE_KEY_HERE",  # ⚠️ À remplacer par gestion sécurisée
-            amount_algo=int(tx.amount * 1_000_000),
-            transaction_id=tx.id
-        )
+        if tx.status != TransactionStatus.CONFIRMED:
+            tx.status = TransactionStatus.CONFIRMED
+            tx.confirmed_at = timezone.now()
+            tx.notes = "Confirmed via webhook"
+            tx.save(update_fields=["status", "confirmed_at", "notes"])
 
-        tx.swap_status = result["status"]
-        tx.swap_info = result
-        tx.save()
+        from payments.services import SwapExecutionError, execute_algo_to_usdc_swap
 
-        log.success = result["status"] == "success"
+        try:
+            result = execute_algo_to_usdc_swap(tx)
+        except SwapExecutionError as exc:
+            log.success = False
+            log.response = {"error": str(exc)}
+            log.save()
+            return Response({"error": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        log.success = result.get("status") == "success"
         log.response = result
         log.save()
+
+        if not log.success:
+            return Response({"error": "Swap failed."}, status=status.HTTP_502_BAD_GATEWAY)
 
         return Response({"detail": "Swap processed."}, status=status.HTTP_200_OK)
 
