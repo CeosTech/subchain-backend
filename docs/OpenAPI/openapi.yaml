@@ -1,0 +1,3593 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: ''
+paths:
+  /api/auth/users/:
+    get:
+      operationId: listUsers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+          description: ''
+      tags:
+      - api
+  /api/auth/me/:
+    get:
+      operationId: listme_views
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/profile/:
+    get:
+      operationId: retrieveUserProfile
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateUserProfile
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserProfile'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateUserProfile
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserProfile'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+      tags:
+      - api
+  /api/auth/settings/:
+    get:
+      operationId: retrieveUserSettings
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateUserSettings
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateUserSettings
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+          description: ''
+      tags:
+      - api
+  /api/auth/activity/:
+    get:
+      operationId: listUserActivities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserActivity'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/plans/:
+    get:
+      operationId: listPlans
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plan'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/plans/{id}/:
+    get:
+      operationId: retrievePlan
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this plan.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/subscriptions/:
+    get:
+      operationId: listSubscriptions
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createSubscription
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/subscriptions/{id}/:
+    get:
+      operationId: retrieveSubscription
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateSubscription
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateSubscription
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroySubscription
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/invoices/:
+    get:
+      operationId: listInvoices
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invoice'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createInvoice
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/invoices/{id}/:
+    get:
+      operationId: retrieveInvoice
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateInvoice
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateInvoice
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyInvoice
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/coupons/:
+    get:
+      operationId: listCoupons
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Coupon'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createCoupon
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Coupon'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Coupon'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Coupon'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/coupons/{id}/:
+    get:
+      operationId: retrieveCoupon
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this coupon.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateCoupon
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this coupon.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Coupon'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Coupon'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Coupon'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateCoupon
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this coupon.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Coupon'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Coupon'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Coupon'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyCoupon
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this coupon.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/events/:
+    get:
+      operationId: listEventLogs
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventLog'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/events/{id}/:
+    get:
+      operationId: retrieveEventLog
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this event log.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventLog'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/checkout-sessions/:
+    get:
+      operationId: listCheckoutSessions
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CheckoutSession'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createCheckoutSession
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSession'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/checkout-sessions/{id}/:
+    get:
+      operationId: retrieveCheckoutSession
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSession'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateCheckoutSession
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSession'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateCheckoutSession
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSession'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyCheckoutSession
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/payments/:
+    get:
+      operationId: listTransactions
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createTransaction
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+      tags:
+      - api
+  /api/payments/{id}/:
+    get:
+      operationId: retrieveTransaction
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this transaction.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateTransaction
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this transaction.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateTransaction
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this transaction.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyTransaction
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this transaction.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/payments/qr/:
+    get:
+      operationId: listget_algo_qrs
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/currency/currencies/:
+    get:
+      operationId: listCurrencies
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Currency'
+          description: ''
+      tags:
+      - api
+  /api/currency/currencies/{id}/:
+    get:
+      operationId: retrieveCurrency
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this currency.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Currency'
+          description: ''
+      tags:
+      - api
+  /api/currency/exchange-rates/:
+    get:
+      operationId: listExchangeRates
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExchangeRate'
+          description: ''
+      tags:
+      - api
+  /api/currency/exchange-rates/{id}/:
+    get:
+      operationId: retrieveExchangeRate
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this exchange rate.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeRate'
+          description: ''
+      tags:
+      - api
+  /api/currency/convert/:
+    get:
+      operationId: listconvert_currencies
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/notifications/:
+    get:
+      operationId: listNotifications
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createNotification
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+      tags:
+      - api
+  /api/notifications/{id}/:
+    get:
+      operationId: retrieveNotification
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this notification.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateNotification
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this notification.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateNotification
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this notification.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyNotification
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this notification.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/notifications/templates/:
+    get:
+      operationId: listNotificationTemplates
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificationTemplate'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createNotificationTemplate
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationTemplate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationTemplate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationTemplate'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTemplate'
+          description: ''
+      tags:
+      - api
+  /api/notifications/templates/{id}/:
+    get:
+      operationId: retrieveNotificationTemplate
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this notification template.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTemplate'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateNotificationTemplate
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this notification template.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationTemplate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationTemplate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationTemplate'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTemplate'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateNotificationTemplate
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this notification template.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationTemplate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationTemplate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationTemplate'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTemplate'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyNotificationTemplate
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this notification template.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/analytics/logs/:
+    get:
+      operationId: listAnalyticsLogs
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnalyticsLog'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createAnalyticsLog
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLog'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLog'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLog'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsLog'
+          description: ''
+      tags:
+      - api
+  /api/analytics/logs/{id}/:
+    get:
+      operationId: retrieveAnalyticsLog
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this analytics log.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsLog'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateAnalyticsLog
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this analytics log.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLog'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLog'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLog'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsLog'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateAnalyticsLog
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this analytics log.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLog'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLog'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AnalyticsLog'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsLog'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyAnalyticsLog
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this analytics log.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/integrations/:
+    get:
+      operationId: listIntegrations
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Integration'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createIntegration
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Integration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Integration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Integration'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+          description: ''
+      tags:
+      - api
+  /api/integrations/{id}/:
+    get:
+      operationId: retrieveIntegration
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateIntegration
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Integration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Integration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Integration'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateIntegration
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Integration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Integration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Integration'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyIntegration
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/auth/register/:
+    post:
+      operationId: createRegister
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/login/:
+    post:
+      operationId: createLogin
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/logout/:
+    post:
+      operationId: createLogout
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/verify-email/:
+    post:
+      operationId: createverify_email
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/forgot-password/:
+    post:
+      operationId: createforgot_password
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/reset-password/:
+    post:
+      operationId: createreset_password
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/token/:
+    post:
+      operationId: createTokenObtainPair
+      description: 'Takes a set of user credentials and returns an access and refresh
+        JSON web
+
+        token pair to prove the authentication of those credentials.'
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+      tags:
+      - api
+  /api/auth/token/refresh/:
+    post:
+      operationId: createTokenRefresh
+      description: 'Takes a refresh type JSON web token and returns an access type
+        JSON web
+
+        token if the refresh token is valid.'
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+      tags:
+      - api
+  /api/auth/token/verify/:
+    post:
+      operationId: createTokenVerify
+      description: 'Takes a token and indicates if it is valid.  This view provides
+        no
+
+        information about a token''s fitness for a particular use.'
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenVerify'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenVerify'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/subscriptions/{id}/activate/:
+    post:
+      operationId: activateSubscription
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/subscriptions/{id}/cancel/:
+    post:
+      operationId: cancelSubscription
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/subscriptions/{id}/resume/:
+    post:
+      operationId: resumeSubscription
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/invoices/{id}/pay/:
+    post:
+      operationId: payInvoice
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+      tags:
+      - api
+  /api/subscriptions/checkout-sessions/{id}/confirm/:
+    post:
+      operationId: confirmCheckoutSession
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CheckoutSession'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSession'
+          description: ''
+      tags:
+      - api
+  /api/payments/webhook/algo-confirm/:
+    post:
+      operationId: createalgo_payment_webhook
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/webhooks/payments/:
+    post:
+      operationId: createpayment_webhook
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/notifications/send-notification/:
+    post:
+      operationId: createSendNotification
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+\z
+          maxLength: 150
+        wallet_address:
+          type: string
+          maxLength: 255
+        is_verified:
+          type: boolean
+      required:
+      - email
+      - username
+      - wallet_address
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        company_name:
+          type: string
+          nullable: true
+          maxLength: 255
+        is_individual:
+          type: boolean
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 20
+        address:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+          maxLength: 100
+        user:
+          type: integer
+      required:
+      - user
+    UserSettings:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        language:
+          type: string
+          maxLength: 10
+        timezone:
+          type: string
+          maxLength: 50
+        receive_emails:
+          type: boolean
+        user:
+          type: integer
+      required:
+      - user
+    UserActivity:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        action:
+          type: string
+          maxLength: 255
+        ip_address:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+        user:
+          type: integer
+      required:
+      - action
+      - user
+    Plan:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          maxLength: 64
+          pattern: ^[-a-zA-Z0-9_]+$
+        name:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+        amount:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000000
+          minimum: -1000000
+        currency:
+          enum:
+          - ALGO
+          - USDC
+          type: string
+        interval:
+          enum:
+          - month
+          - year
+          type: string
+        trial_days:
+          type: integer
+          maximum: 9223372036854775807
+          format: int64
+          minimum: 0
+        is_active:
+          type: boolean
+        metadata:
+          type: object
+        features:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                readOnly: true
+              name:
+                type: string
+                maxLength: 120
+              description:
+                type: string
+              sort_order:
+                type: integer
+                maximum: 9223372036854775807
+                format: int64
+                minimum: 0
+            required:
+            - name
+          readOnly: true
+        price_tiers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                readOnly: true
+              up_to:
+                type: integer
+                maximum: 9223372036854775807
+                format: int64
+                nullable: true
+                description: Upper bound of this tier (inclusive).
+                minimum: 0
+              unit_amount:
+                type: string
+                format: decimal
+                multipleOf: 1.0e-06
+                maximum: 1000000
+                minimum: -1000000
+              currency:
+                enum:
+                - ALGO
+                - USDC
+                type: string
+            required:
+            - unit_amount
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - code
+      - name
+      - amount
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: string
+          readOnly: true
+        plan:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            code:
+              type: string
+              maxLength: 64
+              pattern: ^[-a-zA-Z0-9_]+$
+            name:
+              type: string
+              maxLength: 120
+            description:
+              type: string
+            amount:
+              type: string
+              format: decimal
+              multipleOf: 1.0e-06
+              maximum: 1000000
+              minimum: -1000000
+            currency:
+              enum:
+              - ALGO
+              - USDC
+              type: string
+            interval:
+              enum:
+              - month
+              - year
+              type: string
+            trial_days:
+              type: integer
+              maximum: 9223372036854775807
+              format: int64
+              minimum: 0
+            is_active:
+              type: boolean
+            metadata:
+              type: object
+            features:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  name:
+                    type: string
+                    maxLength: 120
+                  description:
+                    type: string
+                  sort_order:
+                    type: integer
+                    maximum: 9223372036854775807
+                    format: int64
+                    minimum: 0
+                required:
+                - name
+              readOnly: true
+            price_tiers:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  up_to:
+                    type: integer
+                    maximum: 9223372036854775807
+                    format: int64
+                    nullable: true
+                    description: Upper bound of this tier (inclusive).
+                    minimum: 0
+                  unit_amount:
+                    type: string
+                    format: decimal
+                    multipleOf: 1.0e-06
+                    maximum: 1000000
+                    minimum: -1000000
+                  currency:
+                    enum:
+                    - ALGO
+                    - USDC
+                    type: string
+                required:
+                - unit_amount
+              readOnly: true
+            created_at:
+              type: string
+              format: date-time
+              readOnly: true
+            updated_at:
+              type: string
+              format: date-time
+              readOnly: true
+          required:
+          - code
+          - name
+          - amount
+          readOnly: true
+        plan_id:
+          type: integer
+          writeOnly: true
+        coupon:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            code:
+              type: string
+              maxLength: 40
+            name:
+              type: string
+              maxLength: 120
+            duration:
+              enum:
+              - once
+              - repeating
+              - forever
+              type: string
+            duration_in_months:
+              type: integer
+              maximum: 9223372036854775807
+              format: int64
+              nullable: true
+              minimum: 0
+            percent_off:
+              type: string
+              format: decimal
+              multipleOf: 0.01
+              maximum: 1000
+              minimum: -1000
+              nullable: true
+            amount_off:
+              type: string
+              format: decimal
+              multipleOf: 1.0e-06
+              maximum: 1000000
+              minimum: -1000000
+              nullable: true
+            currency:
+              enum:
+              - ALGO
+              - USDC
+              type: string
+            max_redemptions:
+              type: integer
+              maximum: 9223372036854775807
+              format: int64
+              nullable: true
+              minimum: 0
+            redeem_by:
+              type: string
+              format: date-time
+              nullable: true
+            metadata:
+              type: object
+            created_at:
+              type: string
+              format: date-time
+              readOnly: true
+            updated_at:
+              type: string
+              format: date-time
+              readOnly: true
+          required:
+          - code
+          readOnly: true
+        coupon_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        status:
+          type: string
+          readOnly: true
+          default: !!python/object/apply:subscriptions.models.SubscriptionStatus
+          - trialing
+        wallet_address:
+          type: string
+          maxLength: 255
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+          default: 1
+        trial_end_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        current_period_start:
+          type: string
+          format: date-time
+          readOnly: true
+        current_period_end:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        cancel_at_period_end:
+          type: boolean
+          readOnly: true
+        canceled_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        ended_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - plan_id
+      - wallet_address
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        subscription:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            user:
+              type: string
+              readOnly: true
+            plan:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  readOnly: true
+                code:
+                  type: string
+                  maxLength: 64
+                  pattern: ^[-a-zA-Z0-9_]+$
+                name:
+                  type: string
+                  maxLength: 120
+                description:
+                  type: string
+                amount:
+                  type: string
+                  format: decimal
+                  multipleOf: 1.0e-06
+                  maximum: 1000000
+                  minimum: -1000000
+                currency:
+                  enum:
+                  - ALGO
+                  - USDC
+                  type: string
+                interval:
+                  enum:
+                  - month
+                  - year
+                  type: string
+                trial_days:
+                  type: integer
+                  maximum: 9223372036854775807
+                  format: int64
+                  minimum: 0
+                is_active:
+                  type: boolean
+                metadata:
+                  type: object
+                features:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        readOnly: true
+                      name:
+                        type: string
+                        maxLength: 120
+                      description:
+                        type: string
+                      sort_order:
+                        type: integer
+                        maximum: 9223372036854775807
+                        format: int64
+                        minimum: 0
+                    required:
+                    - name
+                  readOnly: true
+                price_tiers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        readOnly: true
+                      up_to:
+                        type: integer
+                        maximum: 9223372036854775807
+                        format: int64
+                        nullable: true
+                        description: Upper bound of this tier (inclusive).
+                        minimum: 0
+                      unit_amount:
+                        type: string
+                        format: decimal
+                        multipleOf: 1.0e-06
+                        maximum: 1000000
+                        minimum: -1000000
+                      currency:
+                        enum:
+                        - ALGO
+                        - USDC
+                        type: string
+                    required:
+                    - unit_amount
+                  readOnly: true
+                created_at:
+                  type: string
+                  format: date-time
+                  readOnly: true
+                updated_at:
+                  type: string
+                  format: date-time
+                  readOnly: true
+              required:
+              - code
+              - name
+              - amount
+              readOnly: true
+            plan_id:
+              type: integer
+              writeOnly: true
+            coupon:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  readOnly: true
+                code:
+                  type: string
+                  maxLength: 40
+                name:
+                  type: string
+                  maxLength: 120
+                duration:
+                  enum:
+                  - once
+                  - repeating
+                  - forever
+                  type: string
+                duration_in_months:
+                  type: integer
+                  maximum: 9223372036854775807
+                  format: int64
+                  nullable: true
+                  minimum: 0
+                percent_off:
+                  type: string
+                  format: decimal
+                  multipleOf: 0.01
+                  maximum: 1000
+                  minimum: -1000
+                  nullable: true
+                amount_off:
+                  type: string
+                  format: decimal
+                  multipleOf: 1.0e-06
+                  maximum: 1000000
+                  minimum: -1000000
+                  nullable: true
+                currency:
+                  enum:
+                  - ALGO
+                  - USDC
+                  type: string
+                max_redemptions:
+                  type: integer
+                  maximum: 9223372036854775807
+                  format: int64
+                  nullable: true
+                  minimum: 0
+                redeem_by:
+                  type: string
+                  format: date-time
+                  nullable: true
+                metadata:
+                  type: object
+                created_at:
+                  type: string
+                  format: date-time
+                  readOnly: true
+                updated_at:
+                  type: string
+                  format: date-time
+                  readOnly: true
+              required:
+              - code
+              readOnly: true
+            coupon_id:
+              type: integer
+              writeOnly: true
+              nullable: true
+            status:
+              type: string
+              readOnly: true
+              default: !!python/object/apply:subscriptions.models.SubscriptionStatus
+              - trialing
+            wallet_address:
+              type: string
+              maxLength: 255
+            quantity:
+              type: integer
+              maximum: 9223372036854775807
+              minimum: 1
+              format: int64
+              default: 1
+            trial_end_at:
+              type: string
+              format: date-time
+              readOnly: true
+              nullable: true
+            current_period_start:
+              type: string
+              format: date-time
+              readOnly: true
+            current_period_end:
+              type: string
+              format: date-time
+              readOnly: true
+              nullable: true
+            cancel_at_period_end:
+              type: boolean
+              readOnly: true
+            canceled_at:
+              type: string
+              format: date-time
+              readOnly: true
+              nullable: true
+            ended_at:
+              type: string
+              format: date-time
+              readOnly: true
+              nullable: true
+            metadata:
+              type: object
+            created_at:
+              type: string
+              format: date-time
+              readOnly: true
+            updated_at:
+              type: string
+              format: date-time
+              readOnly: true
+          required:
+          - plan_id
+          - wallet_address
+          readOnly: true
+        subscription_id:
+          type: integer
+          writeOnly: true
+        user:
+          type: integer
+        number:
+          type: string
+          maxLength: 40
+        status:
+          enum:
+          - draft
+          - open
+          - paid
+          - uncollectible
+          - void
+          type: string
+        currency:
+          enum:
+          - ALGO
+          - USDC
+          type: string
+        subtotal:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000000
+          minimum: -1000000
+        discount_total:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000000
+          minimum: -1000000
+        tax_total:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000000
+          minimum: -1000000
+        total:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000000
+          minimum: -1000000
+        platform_fee:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000000
+          minimum: -1000000
+        period_start:
+          type: string
+          format: date-time
+          nullable: true
+        period_end:
+          type: string
+          format: date-time
+          nullable: true
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        issued_at:
+          type: string
+          format: date-time
+          readOnly: true
+        paid_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        metadata:
+          type: object
+        memo:
+          type: string
+        line_items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                readOnly: true
+              plan:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  code:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[-a-zA-Z0-9_]+$
+                  name:
+                    type: string
+                    maxLength: 120
+                  description:
+                    type: string
+                  amount:
+                    type: string
+                    format: decimal
+                    multipleOf: 1.0e-06
+                    maximum: 1000000
+                    minimum: -1000000
+                  currency:
+                    enum:
+                    - ALGO
+                    - USDC
+                    type: string
+                  interval:
+                    enum:
+                    - month
+                    - year
+                    type: string
+                  trial_days:
+                    type: integer
+                    maximum: 9223372036854775807
+                    format: int64
+                    minimum: 0
+                  is_active:
+                    type: boolean
+                  metadata:
+                    type: object
+                  features:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          readOnly: true
+                        name:
+                          type: string
+                          maxLength: 120
+                        description:
+                          type: string
+                        sort_order:
+                          type: integer
+                          maximum: 9223372036854775807
+                          format: int64
+                          minimum: 0
+                      required:
+                      - name
+                    readOnly: true
+                  price_tiers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          readOnly: true
+                        up_to:
+                          type: integer
+                          maximum: 9223372036854775807
+                          format: int64
+                          nullable: true
+                          description: Upper bound of this tier (inclusive).
+                          minimum: 0
+                        unit_amount:
+                          type: string
+                          format: decimal
+                          multipleOf: 1.0e-06
+                          maximum: 1000000
+                          minimum: -1000000
+                        currency:
+                          enum:
+                          - ALGO
+                          - USDC
+                          type: string
+                      required:
+                      - unit_amount
+                    readOnly: true
+                  created_at:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  updated_at:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                required:
+                - code
+                - name
+                - amount
+                readOnly: true
+              plan_id:
+                type: integer
+                writeOnly: true
+                nullable: true
+              description:
+                type: string
+                maxLength: 255
+              quantity:
+                type: integer
+                maximum: 9223372036854775807
+                format: int64
+                minimum: 0
+              unit_amount:
+                type: string
+                format: decimal
+                multipleOf: 1.0e-06
+                maximum: 1000000
+                minimum: -1000000
+              total_amount:
+                type: string
+                format: decimal
+                multipleOf: 1.0e-06
+                maximum: 1000000
+                minimum: -1000000
+              metadata:
+                type: object
+            required:
+            - description
+            - unit_amount
+            - total_amount
+        payment_intent:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            status:
+              enum:
+              - requires_action
+              - processing
+              - succeeded
+              - failed
+              type: string
+            amount:
+              type: string
+              format: decimal
+              multipleOf: 1.0e-06
+              maximum: 1000000
+              minimum: -1000000
+            currency:
+              enum:
+              - ALGO
+              - USDC
+              type: string
+            algo_tx_id:
+              type: string
+              maxLength: 128
+            swap_tx_ids:
+              type: object
+            confirmed_round:
+              type: integer
+              maximum: 9223372036854775807
+              format: int64
+              nullable: true
+              minimum: 0
+            usdc_received:
+              type: string
+              format: decimal
+              multipleOf: 1.0e-06
+              maximum: 1000000
+              minimum: -1000000
+              nullable: true
+            attempts:
+              type: integer
+              maximum: 9223372036854775807
+              format: int64
+              minimum: 0
+            last_error:
+              type: string
+            created_at:
+              type: string
+              format: date-time
+              readOnly: true
+            updated_at:
+              type: string
+              format: date-time
+              readOnly: true
+            invoice:
+              type: integer
+          required:
+          - amount
+          - currency
+          - invoice
+          readOnly: true
+      required:
+      - subscription_id
+      - user
+      - number
+      - currency
+    Coupon:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          maxLength: 40
+        name:
+          type: string
+          maxLength: 120
+        duration:
+          enum:
+          - once
+          - repeating
+          - forever
+          type: string
+        duration_in_months:
+          type: integer
+          maximum: 9223372036854775807
+          format: int64
+          nullable: true
+          minimum: 0
+        percent_off:
+          type: string
+          format: decimal
+          multipleOf: 0.01
+          maximum: 1000
+          minimum: -1000
+          nullable: true
+        amount_off:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000000
+          minimum: -1000000
+          nullable: true
+        currency:
+          enum:
+          - ALGO
+          - USDC
+          type: string
+        max_redemptions:
+          type: integer
+          maximum: 9223372036854775807
+          format: int64
+          nullable: true
+          minimum: 0
+        redeem_by:
+          type: string
+          format: date-time
+          nullable: true
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - code
+    EventLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        event_type:
+          type: string
+          maxLength: 80
+        resource_type:
+          type: string
+          maxLength: 80
+        resource_id:
+          type: string
+          maxLength: 64
+        payload:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - event_type
+      - resource_type
+      - resource_id
+    CheckoutSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          readOnly: true
+        plan:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            code:
+              type: string
+              maxLength: 64
+              pattern: ^[-a-zA-Z0-9_]+$
+            name:
+              type: string
+              maxLength: 120
+            description:
+              type: string
+            amount:
+              type: string
+              format: decimal
+              multipleOf: 1.0e-06
+              maximum: 1000000
+              minimum: -1000000
+            currency:
+              enum:
+              - ALGO
+              - USDC
+              type: string
+            interval:
+              enum:
+              - month
+              - year
+              type: string
+            trial_days:
+              type: integer
+              maximum: 9223372036854775807
+              format: int64
+              minimum: 0
+            is_active:
+              type: boolean
+            metadata:
+              type: object
+            features:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  name:
+                    type: string
+                    maxLength: 120
+                  description:
+                    type: string
+                  sort_order:
+                    type: integer
+                    maximum: 9223372036854775807
+                    format: int64
+                    minimum: 0
+                required:
+                - name
+              readOnly: true
+            price_tiers:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  up_to:
+                    type: integer
+                    maximum: 9223372036854775807
+                    format: int64
+                    nullable: true
+                    description: Upper bound of this tier (inclusive).
+                    minimum: 0
+                  unit_amount:
+                    type: string
+                    format: decimal
+                    multipleOf: 1.0e-06
+                    maximum: 1000000
+                    minimum: -1000000
+                  currency:
+                    enum:
+                    - ALGO
+                    - USDC
+                    type: string
+                required:
+                - unit_amount
+              readOnly: true
+            created_at:
+              type: string
+              format: date-time
+              readOnly: true
+            updated_at:
+              type: string
+              format: date-time
+              readOnly: true
+          required:
+          - code
+          - name
+          - amount
+          readOnly: true
+        plan_id:
+          type: integer
+          writeOnly: true
+        coupon:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            code:
+              type: string
+              maxLength: 40
+            name:
+              type: string
+              maxLength: 120
+            duration:
+              enum:
+              - once
+              - repeating
+              - forever
+              type: string
+            duration_in_months:
+              type: integer
+              maximum: 9223372036854775807
+              format: int64
+              nullable: true
+              minimum: 0
+            percent_off:
+              type: string
+              format: decimal
+              multipleOf: 0.01
+              maximum: 1000
+              minimum: -1000
+              nullable: true
+            amount_off:
+              type: string
+              format: decimal
+              multipleOf: 1.0e-06
+              maximum: 1000000
+              minimum: -1000000
+              nullable: true
+            currency:
+              enum:
+              - ALGO
+              - USDC
+              type: string
+            max_redemptions:
+              type: integer
+              maximum: 9223372036854775807
+              format: int64
+              nullable: true
+              minimum: 0
+            redeem_by:
+              type: string
+              format: date-time
+              nullable: true
+            metadata:
+              type: object
+            created_at:
+              type: string
+              format: date-time
+              readOnly: true
+            updated_at:
+              type: string
+              format: date-time
+              readOnly: true
+          required:
+          - code
+          readOnly: true
+        coupon_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        wallet_address:
+          type: string
+          maxLength: 255
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+          default: 1
+        status:
+          enum:
+          - open
+          - completed
+          - expired
+          type: string
+          readOnly: true
+        success_url:
+          type: string
+          format: uri
+          maxLength: 200
+          pattern: "^(?:[a-z0-9.+-]*)://(?:[^\\s:@/]+(?::[^\\s:@/]*)?@)?(?:(?:0|25[0-5]|2[0-4][0-9]|1[0-9]?[0-9]?|[1-9][0-9]?)(?:\\\
+            .(?:0|25[0-5]|2[0-4][0-9]|1[0-9]?[0-9]?|[1-9][0-9]?)){3}|\\[[0-9a-f:.]+\\\
+            ]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1-\uFFFF0-9-]{0,61}[a-z\xA1-\uFFFF0-9])?(?:\\\
+            .(?!-)[a-z\xA1-\uFFFF0-9-]{1,63}(?<!-))*\\.(?!-)(?:[a-z\xA1-\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\\
+            .?|localhost))(?::[0-9]{1,5})?(?:[/?#][^\\s]*)?\\z"
+        cancel_url:
+          type: string
+          format: uri
+          maxLength: 200
+          pattern: "^(?:[a-z0-9.+-]*)://(?:[^\\s:@/]+(?::[^\\s:@/]*)?@)?(?:(?:0|25[0-5]|2[0-4][0-9]|1[0-9]?[0-9]?|[1-9][0-9]?)(?:\\\
+            .(?:0|25[0-5]|2[0-4][0-9]|1[0-9]?[0-9]?|[1-9][0-9]?)){3}|\\[[0-9a-f:.]+\\\
+            ]|([a-z\xA1-\uFFFF0-9](?:[a-z\xA1-\uFFFF0-9-]{0,61}[a-z\xA1-\uFFFF0-9])?(?:\\\
+            .(?!-)[a-z\xA1-\uFFFF0-9-]{1,63}(?<!-))*\\.(?!-)(?:[a-z\xA1-\uFFFF-]{2,63}|xn--[a-z0-9]{1,59})(?<!-)\\\
+            .?|localhost))(?::[0-9]{1,5})?(?:[/?#][^\\s]*)?\\z"
+        expires_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - plan_id
+      - wallet_address
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          multipleOf: 0.01
+          maximum: 100000000
+          minimum: -100000000
+        currency:
+          enum:
+          - ALGO
+          - USDC
+          type: string
+        type:
+          enum:
+          - subscription
+          - renewal
+          - manual
+          type: string
+        status:
+          enum:
+          - pending
+          - confirmed
+          - failed
+          - refunded
+          type: string
+          readOnly: true
+        platform_fee:
+          type: string
+          format: decimal
+          multipleOf: 0.01
+          maximum: 100000000
+          minimum: -100000000
+        net_amount:
+          type: string
+          format: decimal
+          multipleOf: 0.01
+          maximum: 100000000
+          minimum: -100000000
+        algo_tx_id:
+          type: string
+          readOnly: true
+          nullable: true
+        usdc_received:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-06
+          maximum: 1000000
+          minimum: -1000000
+          readOnly: true
+          nullable: true
+        swap_completed:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        confirmed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        notes:
+          type: string
+          readOnly: true
+        user:
+          type: integer
+      required:
+      - amount
+      - currency
+      - type
+      - user
+    Currency:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          maxLength: 10
+        name:
+          type: string
+          maxLength: 100
+        symbol:
+          type: string
+          maxLength: 10
+        is_crypto:
+          type: boolean
+        is_active:
+          type: boolean
+      required:
+      - code
+      - name
+    ExchangeRate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        base_currency:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            code:
+              type: string
+              maxLength: 10
+            name:
+              type: string
+              maxLength: 100
+            symbol:
+              type: string
+              maxLength: 10
+            is_crypto:
+              type: boolean
+            is_active:
+              type: boolean
+          required:
+          - code
+          - name
+          readOnly: true
+        target_currency:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            code:
+              type: string
+              maxLength: 10
+            name:
+              type: string
+              maxLength: 100
+            symbol:
+              type: string
+              maxLength: 10
+            is_crypto:
+              type: boolean
+            is_active:
+              type: boolean
+          required:
+          - code
+          - name
+          readOnly: true
+        rate:
+          type: string
+          format: decimal
+          multipleOf: 1.0e-08
+          maximum: 1000000000000
+          minimum: -1000000000000
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - rate
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        message:
+          type: string
+        channel:
+          enum:
+          - email
+          - webhook
+          - sms
+          - in_app
+          type: string
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        sent_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        user:
+          type: integer
+      required:
+      - title
+      - message
+      - user
+    NotificationTemplate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        subject:
+          type: string
+          maxLength: 200
+        message:
+          type: string
+        notification_type:
+          enum:
+          - email
+          - sms
+          - inapp
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - name
+      - message
+    AnalyticsLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        event_type:
+          type: string
+          maxLength: 100
+        payload:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - event_type
+      - payload
+    Integration:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        type:
+          enum:
+          - webhook
+          - discord
+          - slack
+          - zapier
+          - stripe
+          - walletconnect
+          - custom
+          type: string
+        config:
+          type: object
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: string
+          readOnly: true
+      required:
+      - name
+    TokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    TokenRefresh:
+      type: object
+      properties:
+        refresh:
+          type: string
+        access:
+          type: string
+          readOnly: true
+      required:
+      - refresh
+    TokenVerify:
+      type: object
+      properties:
+        token:
+          type: string
+          writeOnly: true
+      required:
+      - token

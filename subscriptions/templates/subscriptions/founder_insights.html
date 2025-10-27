@@ -1,0 +1,64 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+
+{% block title %}Founder Insights | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-module" style="margin-bottom: 2rem;">
+  <h1>Founder Insights</h1>
+  <p class="small">Snapshot for the last 30 days.</p>
+  <div style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
+    <div class="debug" style="flex: 1; min-width: 220px;">
+      <h3>Monthly Recurring Revenue (MRR)</h3>
+      <p style="font-size: 1.8rem;">{{ metrics.mrr|floatformat:2 }} {{ metrics.currency }}</p>
+    </div>
+    <div class="debug" style="flex: 1; min-width: 220px;">
+      <h3>Net New MRR (30d)</h3>
+      <p style="font-size: 1.8rem;">{{ metrics.net_mrr|floatformat:2 }} {{ metrics.currency }}</p>
+    </div>
+    <div class="debug" style="flex: 1; min-width: 220px;">
+      <h3>Churned Subscriptions (30d)</h3>
+      <p style="font-size: 1.8rem;">{{ metrics.churn_count }}</p>
+    </div>
+    <div class="debug" style="flex: 1; min-width: 220px;">
+      <h3>Swap Volume (ALGO → USDC)</h3>
+      <p style="font-size: 1.8rem;">{{ metrics.swap_volume_usdc|floatformat:2 }} USDC</p>
+      <p class="small">Across {{ metrics.swap_count }} swaps</p>
+    </div>
+  </div>
+</div>
+
+<div class="module">
+  <table class="admin-filters" style="width: 100%;">
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Active subscriptions</td>
+        <td>{{ metrics.active_subscriptions }}</td>
+      </tr>
+      <tr>
+        <td>Trialing subscriptions</td>
+        <td>{{ metrics.trialing_subscriptions }}</td>
+      </tr>
+      <tr>
+        <td>Past-due subscriptions</td>
+        <td>{{ metrics.past_due_subscriptions }}</td>
+      </tr>
+      <tr>
+        <td>Invoices issued (30d)</td>
+        <td>{{ metrics.invoices_count }}</td>
+      </tr>
+      <tr>
+        <td>Average swap amount</td>
+        <td>{{ metrics.swap_avg_usdc|floatformat:2 }} USDC</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

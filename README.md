@@ -82,6 +82,12 @@ These run well under Celery beat, cron, or serverless schedulers.
 
 Swagger/OpenAPI docs are available at `/swagger/` once the server is running.
 
+### Developer Tooling
+
+- **Postman collection** – Import `docs/postman/SubChain.postman_collection.json`, set the `base_url`, `email`, and `password` variables, then run the requests in order (login → checkout session → confirm).
+- **OpenAPI artifacts** – `python manage.py generateschema --format openapi-json > docs/OpenAPI/openapi.json` (and the YAML variant) keeps the schema current; optional SDKs can be generated with `openapi-generator-cli` into `docs/OpenAPI/client/`.
+- **Founder Insights dashboard** – Visit `/admin/founder-insights/` for MRR, churn, and swap volume snapshots (admin login required).
+
 ## Testing
 
 ```bash

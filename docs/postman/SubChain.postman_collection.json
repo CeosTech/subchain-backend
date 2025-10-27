@@ -1,0 +1,292 @@
+{
+  "info": {
+    "name": "SubChain API",
+    "description": "Postman collection for the SubChain Algorand subscription backend.",
+    "_postman_id": "c4a1bcb2-0000-0000-0000-subchain",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (JWT)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/token/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "token", "refresh", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Plans",
+      "item": [
+        {
+          "name": "List Active Plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subscriptions/plans/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscriptions", "plans", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Checkout Sessions",
+      "item": [
+        {
+          "name": "Create Checkout Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_id\": {{plan_id}},\n  \"wallet_address\": \"{{wallet_address}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/subscriptions/checkout-sessions/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscriptions", "checkout-sessions", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Checkout Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subscriptions/checkout-sessions/{{session_id}}/confirm/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscriptions", "checkout-sessions", "{{session_id}}", "confirm", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Subscriptions",
+      "item": [
+        {
+          "name": "List Subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subscriptions/subscriptions/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscriptions", "subscriptions", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Subscription (end of period)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"at_period_end\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/subscriptions/subscriptions/{{subscription_id}}/cancel/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscriptions", "subscriptions", "{{subscription_id}}", "cancel", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "item": [
+        {
+          "name": "List Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subscriptions/invoices/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscriptions", "invoices", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pay Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subscriptions/invoices/{{invoice_id}}/pay/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscriptions", "invoices", "{{invoice_id}}", "pay", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "List Event Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subscriptions/events/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscriptions", "events", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "email",
+      "value": "demo@example.com"
+    },
+    {
+      "key": "password",
+      "value": "changeme123"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "plan_id",
+      "value": "1"
+    },
+    {
+      "key": "wallet_address",
+      "value": "YOUR_ALGORAND_ADDRESS"
+    },
+    {
+      "key": "session_id",
+      "value": ""
+    },
+    {
+      "key": "subscription_id",
+      "value": ""
+    },
+    {
+      "key": "invoice_id",
+      "value": ""
+    }
+  ]
+}
