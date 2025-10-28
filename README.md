@@ -28,6 +28,7 @@ This codebase underpins our submission to the **Algorand Startup Challenge**. Ou
 - `subscriptions` – Plans, features, price tiers, checkout sessions, invoices, payment intents, lifecycle automation.
 - `payments` – Transaction log, Tinyman swap executor, fee calculation utilities.
 - `algorand` – SDK utilities, Tinyman clients, rate quoting, ATC helpers.
+  - `contracts/subscription_contract.py` – PyTeal smart contract scaffolding for on-chain subscription state.
 - `notifications` – Notification templates and dispatcher (email today, SMS/webhooks tomorrow).
 - `webhooks` – Endpoints for external confirmations (e.g., Algorand explorers or partner services).
 - `currency`, `integrations`, `analytics` – extension points for FX data, partner APIs, and usage dashboards.
@@ -50,13 +51,16 @@ python manage.py runserver
 
 ### Environment Variables
 
-The `.env.example` file documents all configuration. Notable Algorand settings:
+The `.env.example` file documents all configuration. Key values to review before running the stack:
 
-- `ALGORAND_NETWORK` (`testnet` or `mainnet`)
-- `ALGORAND_ACCOUNT_ADDRESS` and `ALGORAND_ACCOUNT_MNEMONIC`
-- `ALGO_NODE_URL`, `ALGO_INDEXER_URL`
-- `ALGORAND_USDC_ASSET_ID_TESTNET` / `ALGORAND_USDC_ASSET_ID_MAINNET`
-- `TINYMAN_SWAP_SLIPPAGE`, `ALGORAND_SWAP_MAX_RETRIES`
+| Category | Variables |
+| --- | --- |
+| **Algorand node** | `ALGOD_ADDRESS`, `ALGOD_TOKEN`, `ALGORAND_NETWORK`, `ALGORAND_USDC_ASSET_ID_TESTNET`, `ALGORAND_USDC_ASSET_ID_MAINNET` |
+| **Treasury & swaps** | `SUBCHAIN_TREASURY_WALLET_ADDRESS`, `ALGORAND_ACCOUNT_ADDRESS`, `ALGORAND_ACCOUNT_MNEMONIC`, `ALGORAND_DEPLOYER_PRIVATE_KEY`, `PLATFORM_FEE_WALLET_ADDRESS`, `PLATFORM_FEE_PERCENT`, `ALGORAND_SWAP_MAX_RETRIES`, `ALGORAND_SWAP_WAIT_ROUNDS`, `ALGORAND_SWAP_RETRY_DELAY_SECONDS`, `TINYMAN_SWAP_SLIPPAGE` |
+| **Webhooks** | `WEBHOOK_SECRET` |
+| **Celery** | `CELERY_BROKER_URL`, `CELERY_RESULT_BACKEND`, `CELERY_TASK_ALWAYS_EAGER` (optional for local dev) |
+| **NFT minting (optional)** | `NFT_CREATOR_ADDRESS`, `NFT_CREATOR_MNEMONIC` |
+| **Frontend / misc.** | `FRONTEND_BASE_URL`, email settings, JWT lifetimes |
 
 Email delivery defaults to the console backend during development. Update `EMAIL_BACKEND` (and credentials) before production launches.
 
@@ -87,6 +91,8 @@ Swagger/OpenAPI docs are available at `/swagger/` once the server is running.
 - **Postman collection** – Import `docs/postman/SubChain.postman_collection.json`, set the `base_url`, `email`, and `password` variables, then run the requests in order (login → checkout session → confirm).
 - **OpenAPI artifacts** – `python manage.py generateschema --format openapi-json > docs/OpenAPI/openapi.json` (and the YAML variant) keeps the schema current; optional SDKs can be generated with `openapi-generator-cli` into `docs/OpenAPI/client/`.
 - **Founder Insights dashboard** – Visit `/admin/founder-insights/` for MRR, churn, and swap volume snapshots (admin login required).
+- **Smart contract artifacts** – Generate TEAL for a plan via `python manage.py shell -c "from algorand.contracts.subscription_contract import SubscriptionContractConfig, get_teal_sources; print(get_teal_sources(SubscriptionContractConfig(plan_id=1, price_micro_algo=1000000, renew_interval_rounds=1000, treasury_address='YOURADDRESS')))"` then compile/deploy with the helpers in `algorand.utils`.
+- **Celery worker** – Background tasks (webhook swap processing) require `celery -A config worker -l info`; set `CELERY_BROKER_URL`/`CELERY_RESULT_BACKEND` in `.env` (Redis recommended).
 
 ## Testing
 

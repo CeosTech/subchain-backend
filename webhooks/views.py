@@ -1,50 +1,54 @@
 # webhooks/views.py
+import hmac
+from hmac import new as hmac_new
+from hashlib import sha256
+
+from django.conf import settings
+from django.utils import timezone
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from django.utils import timezone
 
 from payments.models import Transaction, CurrencyChoices, TransactionStatus
 from .models import WebhookLog
+from .serializers import PaymentWebhookSerializer
+from .tasks import process_payment_webhook
+
+
+def _verify_signature(request):
+    secret = getattr(settings, "WEBHOOK_SECRET", None)
+    if not secret:
+        return True
+
+    signature = request.headers.get("X-Signature")
+    if not signature:
+        return False
+
+    body = request.body
+    computed = hmac_new(secret.encode(), body, sha256).hexdigest()
+    return hmac.compare_digest(signature, computed)
 
 @api_view(['POST'])
 def payment_webhook(request):
-    payload = request.data
+    if not _verify_signature(request):
+        return Response({"error": "Invalid signature"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    serializer = PaymentWebhookSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    payload = serializer.validated_data
 
     # Log initial
-    log = WebhookLog.objects.create(endpoint="payments", payload=payload)
+    external_id = f"{payload['transaction_id']}"
+    log, created = WebhookLog.objects.get_or_create(
+        endpoint="payments",
+        external_id=external_id,
+        defaults={
+            "payload": payload,
+            "headers": dict(request.headers),
+        },
+    )
+    if not created and log.success:
+        return Response({"detail": "Duplicate webhook ignored."}, status=status.HTTP_200_OK)
 
-    tx_id = payload.get("transaction_id")
-    try:
-        tx = Transaction.objects.get(id=tx_id, currency=CurrencyChoices.ALGO)
-
-        if tx.status != TransactionStatus.CONFIRMED:
-            tx.status = TransactionStatus.CONFIRMED
-            tx.confirmed_at = timezone.now()
-            tx.notes = "Confirmed via webhook"
-            tx.save(update_fields=["status", "confirmed_at", "notes"])
-
-        from payments.services import SwapExecutionError, execute_algo_to_usdc_swap
-
-        try:
-            result = execute_algo_to_usdc_swap(tx)
-        except SwapExecutionError as exc:
-            log.success = False
-            log.response = {"error": str(exc)}
-            log.save()
-            return Response({"error": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
-
-        log.success = result.get("status") == "success"
-        log.response = result
-        log.save()
-
-        if not log.success:
-            return Response({"error": "Swap failed."}, status=status.HTTP_502_BAD_GATEWAY)
-
-        return Response({"detail": "Swap processed."}, status=status.HTTP_200_OK)
-
-    except Transaction.DoesNotExist:
-        log.success = False
-        log.response = {"error": "Transaction not found or not eligible."}
-        log.save()
-        return Response({"error": "Transaction not found."}, status=status.HTTP_404_NOT_FOUND)
+    process_payment_webhook.delay(log.id, payload["transaction_id"])
+    return Response({"detail": "Webhook received."}, status=status.HTTP_202_ACCEPTED)

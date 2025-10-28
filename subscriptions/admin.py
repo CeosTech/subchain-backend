@@ -1,6 +1,7 @@
 from decimal import Decimal
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib import admin
 from django.template.response import TemplateResponse
 from django.urls import path
@@ -40,6 +41,28 @@ class PlanAdmin(admin.ModelAdmin):
     list_filter = ("currency", "interval", "is_active")
     search_fields = ("code", "name")
     inlines = [PlanFeatureInline, PriceTierInline]
+    actions = ["deploy_contract_action"]
+
+    def deploy_contract_action(self, request, queryset):
+        deployed = 0
+        for plan in queryset:
+            if plan.contract_app_id:
+                continue
+
+            config = SubscriptionContractConfig(
+                plan_id=plan.id,
+                price_micro_algo=int(plan.amount * Decimal("1000000")),
+                renew_interval_rounds=30 * 60,  # placeholder
+                treasury_address=settings.ALGORAND_ACCOUNT_ADDRESS,
+            )
+            app_id = deploy_subscription_contract(config)
+            plan.contract_app_id = app_id
+            plan.save(update_fields=["contract_app_id"])
+            deployed += 1
+
+        self.message_user(request, f"Deployed contracts for {deployed} plan(s).")
+
+    deploy_contract_action.short_description = "Deploy Algorand subscription contract"
 
 
 @admin.register(Coupon)

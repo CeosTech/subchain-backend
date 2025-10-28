@@ -11,6 +11,7 @@ from subscriptions.models import Coupon, Plan, PlanInterval, Subscription, Subsc
 from subscriptions.services.events import EventRecorder
 from subscriptions.services.invoicing import InvoiceService
 from subscriptions.services.notification import NotificationDispatcher
+from algorand.subscription import opt_in_subscription, SubscriptionAccount
 
 
 def _calculate_period_end(start, interval: str) -> timezone.datetime:
@@ -83,6 +84,14 @@ class SubscriptionLifecycleService:
             )
 
             self.notifications.subscription_created(subscription)
+
+        # Attempt on-chain opt-in (best effort)
+        if plan.contract_app_id:
+            try:
+                subscription_account = SubscriptionAccount(address=wallet_address, private_key="")
+                opt_in_subscription(subscription, subscription_account)
+            except Exception as exc:
+                logger.warning("Failed to opt-in subscription %s: %s", subscription.id, exc)
 
         return LifecycleResult(subscription=subscription)
 

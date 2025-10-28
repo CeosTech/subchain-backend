@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Iterable, List
+import base64
+from typing import Iterable, List, Optional
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -12,9 +13,20 @@ from algosdk.atomic_transaction_composer import (
     AtomicTransactionComposer,
     TransactionWithSigner,
 )
+from algosdk.future.transaction import (
+    ApplicationCreateTxn,
+    OnComplete,
+    StateSchema,
+    wait_for_confirmation,
+)
 from algosdk.v2client import algod
 from rest_framework.exceptions import APIException
 from tinyman.v1.client import TinymanMainnetClient, TinymanTestnetClient
+
+from algorand.contracts.subscription_contract import (
+    SubscriptionContractConfig,
+    get_teal_sources,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +46,62 @@ def get_algod_client() -> algod.AlgodClient:
     api_token = settings.ALGO_API_TOKEN
     headers = {"X-API-Key": api_token} if api_token else {}
     return algod.AlgodClient(api_token, settings.ALGO_NODE_URL, headers)
+
+
+def compile_teal_source(teal_source: str, algod_client: Optional[algod.AlgodClient] = None) -> bytes:
+    """Compile TEAL source code using the configured Algod client."""
+    algod_client = algod_client or get_algod_client()
+    response = algod_client.compile(teal_source)
+    return base64.b64decode(response["result"])
+
+
+def compile_subscription_contract(
+    cfg: SubscriptionContractConfig,
+    algod_client: Optional[algod.AlgodClient] = None,
+) -> dict:
+    """Compile subscription contract approval and clear programs to binary."""
+    sources = get_teal_sources(cfg)
+    algod_client = algod_client or get_algod_client()
+    approval = compile_teal_source(sources["approval"], algod_client)
+    clear = compile_teal_source(sources["clear"], algod_client)
+    return {"approval": approval, "clear": clear, "sources": sources}
+
+
+def deploy_subscription_contract(
+    cfg: SubscriptionContractConfig,
+    algod_client: Optional[algod.AlgodClient] = None,
+) -> int:
+    """Deploy the subscription smart contract and return the app ID."""
+    algod_client = algod_client or get_algod_client()
+    compiled = compile_subscription_contract(cfg, algod_client)
+
+    params = algod_client.suggested_params()
+    params.flat_fee = True
+    params.fee = params.min_fee * 2
+
+    txn = ApplicationCreateTxn(
+        sender=settings.ALGORAND_ACCOUNT_ADDRESS,
+        sp=params,
+        on_complete=OnComplete.NoOpOC,
+        approval_program=compiled["approval"],
+        clear_program=compiled["clear"],
+        global_schema=StateSchema(num_uints=4, num_byte_slices=1),
+        local_schema=StateSchema(num_uints=1, num_byte_slices=1),
+    )
+
+    private_key = getattr(settings, "ALGORAND_DEPLOYER_PRIVATE_KEY", None)
+    if not private_key:
+        raise ImproperlyConfigured("ALGORAND_DEPLOYER_PRIVATE_KEY must be set to deploy contracts.")
+
+    signed_txn = txn.sign(private_key)
+    tx_id = algod_client.send_transaction(signed_txn)
+    wait_rounds = getattr(settings, "ALGORAND_APP_WAIT_ROUNDS", 4)
+    wait_for_confirmation(algod_client, tx_id, wait_rounds)
+    response = algod_client.pending_transaction_info(tx_id)
+    app_id = response.get("application-index")
+    if not app_id:
+        raise RuntimeError("Failed to deploy subscription contract")
+    return app_id
 
 
 def _resolve_usdc_asset_id() -> int:

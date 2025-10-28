@@ -3,6 +3,7 @@ Django>=4.2
 djangorestframework
 djangorestframework-simplejwt
 django-cors-headers
+celery>=5.4.0
 
 # Algorand SDK
 py-algorand-sdk
@@ -20,6 +21,9 @@ python-dateutil
 
 # Webhooks / cron jobs
 django-cron
+
+# Algorand smart contracts
+pyteal>=0.25.0
 
 # Pour la gestion d’environnements
 python-decouple
