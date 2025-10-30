@@ -4,7 +4,10 @@ from dataclasses import dataclass
 from typing import Optional
 
 from algosdk import account
-from algosdk.future import transaction
+try:
+    from algosdk.future import transaction  # Compat with older SDKs
+except ModuleNotFoundError:  # pragma: no cover - py-algorand-sdk >=2.0
+    from algosdk import transaction
 from algosdk.v2client import algod
 
 from django.conf import settings

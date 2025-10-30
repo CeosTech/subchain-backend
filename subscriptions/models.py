@@ -64,6 +64,13 @@ class Plan(models.Model):
     trial_days = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     metadata = models.JSONField(default=dict, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="plans",
+    )
     contract_app_id = models.PositiveBigIntegerField(null=True, blank=True, help_text="Algorand app ID for on-chain enforcement")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

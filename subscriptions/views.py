@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -75,10 +76,32 @@ def execute_subscription_checkout(
     return subscription, invoice, payment_intent, payment_error
 
 
-class PlanViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Plan.objects.filter(is_active=True)
+class PlanViewSet(viewsets.ModelViewSet):
+    queryset = Plan.objects.all()
     serializer_class = PlanSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        queryset = Plan.objects.all()
+        user = getattr(self.request, "user", None)
+
+        if self.action in ["list", "retrieve"]:
+            if user and user.is_authenticated:
+                if user.is_staff:
+                    return queryset
+                return queryset.filter(Q(created_by=user) | Q(is_active=True))
+            return queryset.filter(is_active=True)
+
+        if user and user.is_authenticated and not user.is_staff:
+            return queryset.filter(created_by=user)
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 
 
 class SubscriptionViewSet(viewsets.ModelViewSet):

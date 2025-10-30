@@ -37,9 +37,9 @@ class PriceTierInline(admin.TabularInline):
 
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "amount", "currency", "interval", "trial_days", "is_active")
+    list_display = ("code", "name", "created_by", "amount", "currency", "interval", "trial_days", "is_active")
     list_filter = ("currency", "interval", "is_active")
-    search_fields = ("code", "name")
+    search_fields = ("code", "name", "created_by__email")
     inlines = [PlanFeatureInline, PriceTierInline]
     actions = ["deploy_contract_action"]
 

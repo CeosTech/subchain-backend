@@ -44,12 +44,13 @@ class PlanSerializer(serializers.ModelSerializer):
             "trial_days",
             "is_active",
             "metadata",
+            "created_by",
             "features",
             "price_tiers",
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("created_at", "updated_at")
+        read_only_fields = ("created_at", "updated_at", "created_by")
 
 
 class CouponSerializer(serializers.ModelSerializer):

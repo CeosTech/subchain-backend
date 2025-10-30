@@ -13,12 +13,20 @@ from algosdk.atomic_transaction_composer import (
     AtomicTransactionComposer,
     TransactionWithSigner,
 )
-from algosdk.future.transaction import (
-    ApplicationCreateTxn,
-    OnComplete,
-    StateSchema,
-    wait_for_confirmation,
-)
+try:  # SDK >= 2.0 groups transaction primitives under algosdk.transaction
+    from algosdk.future.transaction import (
+        ApplicationCreateTxn,
+        OnComplete,
+        StateSchema,
+        wait_for_confirmation,
+    )
+except ModuleNotFoundError:  # pragma: no cover - compatibility for newer py-algorand-sdk
+    from algosdk import transaction as _transaction
+
+    ApplicationCreateTxn = _transaction.ApplicationCreateTxn
+    OnComplete = _transaction.OnComplete
+    StateSchema = _transaction.StateSchema
+    wait_for_confirmation = _transaction.wait_for_confirmation
 from algosdk.v2client import algod
 from rest_framework.exceptions import APIException
 from tinyman.v1.client import TinymanMainnetClient, TinymanTestnetClient
