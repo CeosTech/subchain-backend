@@ -8,6 +8,7 @@ from rest_framework.test import APITestCase
 from subscriptions.models import (
     CheckoutSession,
     CheckoutSessionStatus,
+    Coupon,
     CurrencyChoices,
     Plan,
     PlanInterval,
@@ -46,11 +47,24 @@ class SubscriptionAPITests(APITestCase):
         )
         self.client.force_authenticate(user=self.user)
 
+    def _customer_payload(self, **overrides):
+        base = {
+            "customer_type": "individual",
+            "billing_email": "billing@example.com",
+            "billing_phone": "",
+            "billing_address": "123 Billing Street",
+            "billing_same_as_shipping": True,
+            "shipping_address": "",
+        }
+        base.update(overrides)
+        return base
+
     def test_create_subscription_with_trial(self):
         url = reverse("subscription-list")
         payload = {
             "plan_id": self.plan.id,
             "wallet_address": "TRIALWALLET",
+            **self._customer_payload(),
         }
 
         response = self.client.post(url, payload, format="json")
@@ -66,6 +80,7 @@ class SubscriptionAPITests(APITestCase):
         payload = {
             "plan_id": self.free_plan.id,
             "wallet_address": "FREEWALLET",
+            **self._customer_payload(billing_email="freeplan@example.com"),
         }
 
         response = self.client.post(url, payload, format="json")
@@ -80,6 +95,7 @@ class SubscriptionAPITests(APITestCase):
         payload = {
             "plan_id": self.plan.id,
             "wallet_address": "SESSIONWALLET",
+            **self._customer_payload(),
         }
 
         response = self.client.post(session_url, payload, format="json")
@@ -94,3 +110,40 @@ class SubscriptionAPITests(APITestCase):
         self.assertEqual(Notification.objects.filter(user=self.user).count(), 1)
         session = CheckoutSession.objects.get(id=session_id)
         self.assertEqual(session.status, CheckoutSessionStatus.COMPLETED)
+
+    def test_user_can_create_coupon(self):
+        url = reverse("coupon-list")
+        payload = {
+            "code": "PROMO10",
+            "name": "Promo 10",
+            "duration": "once",
+            "percent_off": "10.00",
+            "currency": CurrencyChoices.ALGO,
+            "max_redemptions": 50,
+        }
+
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        coupon = Coupon.objects.get(code="PROMO10")
+        self.assertEqual(coupon.created_by, self.user)
+
+    def test_user_cannot_update_foreign_coupon(self):
+        other_user = get_user_model().objects.create_user(
+            email="owner@example.com",
+            password="pass1234",
+            username="owner",
+            wallet_address="OWNERWALLET",
+        )
+        coupon = Coupon.objects.create(
+            code="FOREIGN",
+            duration="once",
+            percent_off=Decimal("10.00"),
+            currency=CurrencyChoices.ALGO,
+            created_by=other_user,
+        )
+
+        url = reverse("coupon-detail", args=[coupon.id])
+        response = self.client.patch(url, {"name": "Updated"}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

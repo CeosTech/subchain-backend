@@ -67,17 +67,80 @@ class PlanAdmin(admin.ModelAdmin):
 
 @admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "duration", "percent_off", "amount_off", "currency", "max_redemptions")
+    list_display = (
+        "code",
+        "name",
+        "duration",
+        "percent_off",
+        "amount_off",
+        "currency",
+        "max_redemptions",
+        "created_by",
+    )
     list_filter = ("duration", "currency")
-    search_fields = ("code", "name")
+    search_fields = ("code", "name", "created_by__email")
 
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ("user", "plan", "status", "current_period_end", "cancel_at_period_end", "created_at")
-    list_filter = ("status", "plan__code")
+    list_display = (
+        "user",
+        "plan",
+        "status",
+        "customer_type",
+        "current_period_end",
+        "cancel_at_period_end",
+        "created_at",
+    )
+    list_filter = ("status", "plan__code", "customer_type")
     search_fields = ("user__email", "plan__code", "wallet_address")
     autocomplete_fields = ("user", "plan", "coupon")
+    fieldsets = (
+        (
+            "Subscription",
+            {
+                "fields": (
+                    "user",
+                    "plan",
+                    "coupon",
+                    "status",
+                    "quantity",
+                    "wallet_address",
+                    "customer_type",
+                    "company_name",
+                    "vat_number",
+                )
+            },
+        ),
+        (
+            "Billing & Shipping",
+            {
+                "fields": (
+                    "billing_email",
+                    "billing_phone",
+                    "billing_address",
+                    "billing_same_as_shipping",
+                    "shipping_address",
+                )
+            },
+        ),
+        (
+            "Lifecycle",
+            {
+                "fields": (
+                    "trial_end_at",
+                    "current_period_start",
+                    "current_period_end",
+                    "cancel_at_period_end",
+                    "canceled_at",
+                    "ended_at",
+                    "metadata",
+                )
+            },
+        ),
+        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+    )
+    readonly_fields = ("created_at", "updated_at")
 
 
 class InvoiceLineItemInline(admin.TabularInline):
@@ -110,8 +173,8 @@ class EventLogAdmin(admin.ModelAdmin):
 
 @admin.register(CheckoutSession)
 class CheckoutSessionAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "plan", "status", "expires_at", "created_at")
-    list_filter = ("status", "plan__code")
+    list_display = ("id", "user", "plan", "status", "customer_type", "expires_at", "created_at")
+    list_filter = ("status", "plan__code", "customer_type")
     search_fields = ("id", "user__email", "plan__code")
     autocomplete_fields = ("user", "plan", "coupon")
 

@@ -54,6 +54,11 @@ class CheckoutSessionStatus(models.TextChoices):
     EXPIRED = "expired", "Expired"
 
 
+class CustomerType(models.TextChoices):
+    INDIVIDUAL = "individual", "Particulier"
+    BUSINESS = "business", "Entreprise"
+
+
 class Plan(models.Model):
     code = models.SlugField(max_length=64, unique=True)
     name = models.CharField(max_length=120)
@@ -123,6 +128,13 @@ class Coupon(models.Model):
     max_redemptions = models.PositiveIntegerField(null=True, blank=True)
     redeem_by = models.DateTimeField(null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="coupons",
+        null=True,
+        blank=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -140,6 +152,18 @@ class Subscription(models.Model):
     status = models.CharField(max_length=24, choices=SubscriptionStatus.choices, default=SubscriptionStatus.TRIALING)
     wallet_address = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField(default=1)
+    customer_type = models.CharField(
+        max_length=12,
+        choices=CustomerType.choices,
+        default=CustomerType.INDIVIDUAL,
+    )
+    company_name = models.CharField(max_length=255, blank=True, default="")
+    vat_number = models.CharField(max_length=64, blank=True, default="")
+    billing_email = models.EmailField(blank=True, default="")
+    billing_phone = models.CharField(max_length=32, blank=True, default="")
+    billing_address = models.TextField(blank=True, default="")
+    billing_same_as_shipping = models.BooleanField(default=True)
+    shipping_address = models.TextField(blank=True, default="")
     trial_end_at = models.DateTimeField(null=True, blank=True)
     current_period_start = models.DateTimeField(default=timezone.now)
     current_period_end = models.DateTimeField(null=True, blank=True)
@@ -254,6 +278,18 @@ class CheckoutSession(models.Model):
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True, related_name="checkout_sessions")
     wallet_address = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField(default=1)
+    customer_type = models.CharField(
+        max_length=12,
+        choices=CustomerType.choices,
+        default=CustomerType.INDIVIDUAL,
+    )
+    company_name = models.CharField(max_length=255, blank=True, default="")
+    vat_number = models.CharField(max_length=64, blank=True, default="")
+    billing_email = models.EmailField(blank=True, default="")
+    billing_phone = models.CharField(max_length=32, blank=True, default="")
+    billing_address = models.TextField(blank=True, default="")
+    billing_same_as_shipping = models.BooleanField(default=True)
+    shipping_address = models.TextField(blank=True, default="")
     status = models.CharField(max_length=12, choices=CheckoutSessionStatus.choices, default=CheckoutSessionStatus.OPEN)
     success_url = models.URLField(blank=True)
     cancel_url = models.URLField(blank=True)

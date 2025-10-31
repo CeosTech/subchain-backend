@@ -75,7 +75,12 @@ class CommandTests(TestCase):
             trial_end_at=timezone.now() - timedelta(days=1),
         )
 
-        mock_payment_service.return_value.process_invoice.return_value = mock.Mock(status="succeeded")
+        def mark_paid(inv, **kwargs):
+            inv.status = InvoiceStatus.PAID
+            inv.save(update_fields=["status"])
+            return mock.Mock(status="succeeded")
+
+        mock_payment_service.return_value.process_invoice.side_effect = mark_paid
 
         call_command("expire_trials")
 

@@ -18,9 +18,11 @@
 | Méthode | Endpoint | Description |
 |--------|----------|-------------|
 | GET | /api/subscriptions/plans/ | Liste des plans |
-| POST | /api/subscriptions/subscribe/ | S'abonner à un plan |
-| POST | /api/subscriptions/change-plan/ | Changer de plan |
-| GET | /api/subscriptions/me/ | Voir mon abonnement |
+| POST | /api/subscriptions/ | Créer un abonnement (champ `customer_type`, adresse de facturation, etc.) |
+| GET | /api/subscriptions/ | Voir mes abonnements |
+| GET/POST | /api/subscriptions/coupons/ | Gérer ses coupons (staff = global) |
+| POST | /api/subscriptions/checkout-sessions/ | Lancer un checkout sécurisé |
+| POST | /api/subscriptions/checkout-sessions/{id}/confirm | Confirmer le checkout |
 
 ---
 
@@ -47,5 +49,4 @@
 ## Webhooks (automatiques)
 
 | POST | /api/webhooks/renew/ | Déclenché après 30j pour renouveler |
-
 

@@ -2,6 +2,7 @@ from django.db.models import Q
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 
 from payments.services import SwapExecutionError
 from payments.models import TransactionType
@@ -37,6 +38,7 @@ def execute_subscription_checkout(
     coupon=None,
     metadata=None,
     transaction_type: TransactionType = TransactionType.SUBSCRIPTION,
+    **subscription_fields,
 ):
     lifecycle = SubscriptionLifecycleService()
     invoice_service = InvoiceService()
@@ -49,6 +51,7 @@ def execute_subscription_checkout(
         coupon=coupon,
         quantity=quantity,
         metadata=metadata or {},
+        **subscription_fields,
     )
     subscription = lifecycle_result.subscription
 
@@ -124,6 +127,16 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         quantity = validated.get("quantity") or 1
         wallet_address = validated["wallet_address"]
         metadata = validated.get("metadata", {})
+        subscription_kwargs = {
+            "customer_type": validated.get("customer_type"),
+            "company_name": validated.get("company_name", ""),
+            "vat_number": validated.get("vat_number", ""),
+            "billing_email": validated.get("billing_email"),
+            "billing_phone": validated.get("billing_phone", ""),
+            "billing_address": validated.get("billing_address", ""),
+            "billing_same_as_shipping": validated.get("billing_same_as_shipping", True),
+            "shipping_address": validated.get("shipping_address", ""),
+        }
 
         subscription, invoice, payment_intent, payment_error = execute_subscription_checkout(
             user=request.user,
@@ -133,6 +146,7 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
             quantity=quantity,
             metadata=metadata,
             transaction_type=TransactionType.SUBSCRIPTION,
+            **subscription_kwargs,
         )
 
         subscription_data = self.get_serializer(subscription).data
@@ -198,7 +212,29 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 class CouponViewSet(viewsets.ModelViewSet):
     queryset = Coupon.objects.all()
     serializer_class = CouponSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Coupon.objects.all()
+        return Coupon.objects.filter(Q(created_by=user) | Q(created_by__isnull=True))
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        user = self.request.user
+        if not user.is_staff and instance.created_by != user:
+            raise PermissionDenied("You can only update your own coupons.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+        if not user.is_staff and instance.created_by != user:
+            raise PermissionDenied("You can only delete your own coupons.")
+        instance.delete()
 
 
 class EventLogViewSet(viewsets.ReadOnlyModelViewSet):
@@ -240,6 +276,14 @@ class CheckoutSessionViewSet(viewsets.ModelViewSet):
             quantity=session.quantity,
             metadata=session.metadata,
             transaction_type=TransactionType.SUBSCRIPTION,
+            customer_type=session.customer_type,
+            company_name=session.company_name,
+            vat_number=session.vat_number,
+            billing_email=session.billing_email,
+            billing_phone=session.billing_phone,
+            billing_address=session.billing_address,
+            billing_same_as_shipping=session.billing_same_as_shipping,
+            shipping_address=session.shipping_address,
         )
 
         if payment_error:

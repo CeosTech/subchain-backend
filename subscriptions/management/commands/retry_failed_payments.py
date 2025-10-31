@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 from payments.models import TransactionType
 from payments.services import SwapExecutionError
@@ -29,6 +30,12 @@ class Command(BaseCommand):
             subscription = invoice.subscription
             try:
                 payment_service.process_invoice(invoice, transaction_type=TransactionType.RENEWAL)
+                invoice.refresh_from_db()
+                if invoice.status != InvoiceStatus.PAID:
+                    invoice.status = InvoiceStatus.PAID
+                    if invoice.paid_at is None:
+                        invoice.paid_at = timezone.now()
+                    invoice.save(update_fields=["status", "paid_at"])
                 lifecycle.advance_period(subscription)
                 self.stdout.write(self.style.SUCCESS(f"Invoice {invoice.number} paid. Subscription {subscription.id} renewed."))
             except SwapExecutionError as exc:

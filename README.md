@@ -26,6 +26,7 @@ This codebase underpins our submission to the **Algorand Startup Challenge**. Ou
 
 - `accounts` – Custom user model, profiles, settings, password flows.
 - `subscriptions` – Plans, features, price tiers, checkout sessions, invoices, payment intents, lifecycle automation.
+  - Coupon management endpoints let operators or merchants mint their own promo codes alongside platform-wide campaigns.
 - `payments` – Transaction log, Tinyman swap executor, fee calculation utilities.
 - `algorand` – SDK utilities, Tinyman clients, rate quoting, ATC helpers.
   - `contracts/subscription_contract.py` – PyTeal smart contract scaffolding for on-chain subscription state.
@@ -81,6 +82,7 @@ These run well under Celery beat, cron, or serverless schedulers.
 - `POST /api/subscriptions/checkout-sessions/` – Issue a signed checkout session for the front-end.
 - `POST /api/subscriptions/checkout-sessions/{id}/confirm` – Finalize a session into a subscription/invoice/payment-intent trio.
 - `POST /api/subscriptions/` – Direct server-side creation (for trusted services or admin flows).
+- `GET/POST /api/subscriptions/coupons/` – Authenticated users can manage their own coupons; staff can manage every campaign.
 - `POST /api/invoices/{id}/pay/` – Retry a payment manually.
 - `GET /api/events/` – Fetch the audit stream (admin only).
 
@@ -105,6 +107,7 @@ Tests cover:
 - Model invariants (plans, invoices, subscriptions).
 - Service orchestration (lifecycle, invoicing, Tinyman payments, notifications).
 - REST endpoints (checkout sessions, subscription creation).
+- Coupon access control & authoring.
 - Management commands (trial expiry, renewals, payment retries).
 
 Tinyman interactions are mocked so the suite runs offline.
@@ -122,3 +125,23 @@ Tinyman interactions are mocked so the suite runs offline.
 Issues and pull requests are welcome. For partnership inquiries or to learn more about SubChain’s participation in the Algorand Startup Challenge, reach out at **hello@subchain.xyz**.
 
 Let’s prove that world-class subscription infrastructure can live entirely on Algorand.
+### Collecting Customer Details Up Front
+
+Both `/api/subscriptions/` and `/api/subscriptions/checkout-sessions/` now accept rich billing metadata so the checkout form can adapt to individuals or businesses:
+
+```json
+{
+  "plan_id": 1,
+  "wallet_address": "SOMETHING123",
+  "customer_type": "business",
+  "company_name": "ACME Labs",
+  "vat_number": "EU123456789",
+  "billing_email": "billing@acme.io",
+  "billing_phone": "+33 1 23 45 67 89",
+  "billing_address": "15 rue de Rivoli, 75001 Paris",
+  "billing_same_as_shipping": false,
+  "shipping_address": "Entrepôt ACME, 10 bd Voltaire, 75011 Paris"
+}
+```
+
+If `customer_type` is `business`, both `company_name` and `vat_number` are required. Set `billing_same_as_shipping` to `false` to capture a dedicated delivery address. Telephone numbers remain optional.

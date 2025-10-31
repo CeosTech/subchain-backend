@@ -7,7 +7,7 @@ from typing import Optional
 from django.db import transaction
 from django.utils import timezone
 
-from subscriptions.models import Coupon, Plan, PlanInterval, Subscription, SubscriptionStatus
+from subscriptions.models import Coupon, Plan, PlanInterval, Subscription, SubscriptionStatus, CustomerType
 from subscriptions.services.events import EventRecorder
 from subscriptions.services.invoicing import InvoiceService
 from subscriptions.services.notification import NotificationDispatcher
@@ -49,6 +49,14 @@ class SubscriptionLifecycleService:
         coupon: Optional[Coupon] = None,
         quantity: int = 1,
         metadata: Optional[dict] = None,
+        customer_type: CustomerType = CustomerType.INDIVIDUAL,
+        company_name: str = "",
+        vat_number: str = "",
+        billing_email: str | None = None,
+        billing_phone: str = "",
+        billing_address: str = "",
+        billing_same_as_shipping: bool = True,
+        shipping_address: str = "",
     ) -> LifecycleResult:
         now = self._now()
         trial_days = plan.trial_days
@@ -70,6 +78,14 @@ class SubscriptionLifecycleService:
                 current_period_start=current_period_start,
                 current_period_end=current_period_end,
                 metadata=metadata or {},
+                customer_type=customer_type or CustomerType.INDIVIDUAL,
+                company_name=company_name,
+                vat_number=vat_number,
+                billing_email=billing_email or "",
+                billing_phone=billing_phone,
+                billing_address=billing_address,
+                billing_same_as_shipping=billing_same_as_shipping,
+                shipping_address=shipping_address if not billing_same_as_shipping else "",
             )
 
             self.events.record(
