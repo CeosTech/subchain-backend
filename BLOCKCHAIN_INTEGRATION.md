@@ -5,6 +5,17 @@ Voici un fichier `BLOCKCHAIN_INTEGRATION.md` 📄 en **Markdown** pour documente
 ````md
 # 📦 BLOCKCHAIN_INTEGRATION.md
 
+## ⚡ x402 (HTTP 402) pour les micropaiements Algorand
+
+SubChain supporte désormais le protocole [x402](https://docs.cdp.coinbase.com/x402/welcome) pour verrouiller des endpoints HTTP derrière un paiement crypto instantané.
+
+- Active la feature en définissant `X402_ENABLED=true` et la destination `X402_PAYTO_ADDRESS` (par ex. ton wallet USDC sur Algorand ou sur le réseau cible de ton choix).
+- Configure les tarifs par route avec l'API `/api/integrations/x402/pricing-rules/` (backend `EndpointPricingRule`) ou via `X402_PRICING_RULES` pour un fallback global.
+- Le middleware `integrations.middleware.x402.X402PaymentMiddleware` renvoie `HTTP 402` tant que le header `X-402-Receipt` n'est pas validé; les reçus sont persistés dans `PaymentReceipt` pour empêcher les replays.
+- La vérification d'un reçu est pluggable via `X402_RECEIPT_VERIFIER` (par défaut `integrations.verifiers.algorand.verify_receipt`) qui vérifie un transfert USDC sur Algorand vers `X402_PAYTO_ADDRESS`.
+- Le dashboard permet de générer des liens (`/api/integrations/x402/links/`) et widgets x402 avec routes publiques `/paywall/tenant/{id}/...` ainsi que des packs de crédits (`/credit-plans/`, `/credit-subscriptions/`, `/credit-usage/`). Chaque paiement crée automatiquement un `PaymentLinkEvent` ou alimente un compteur de crédits en exposant la commission (`platform_fee_percent`) et le montant net reversé.
+- Les abonnements ALGO existants ne sont pas impactés : x402 sert uniquement aux endpoints “pay-per-call”. Aucun changement n'est requis dans `subscriptions/`.
+
 ## 🔗 Intégration Blockchain – Binance Smart Chain (BNB)
 
 Ce document explique comment intégrer la BNB Chain (ex Binance Smart Chain) dans un projet Django (comme SubChain) pour :

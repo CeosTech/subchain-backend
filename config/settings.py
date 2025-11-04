@@ -47,6 +47,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "integrations.middleware.x402.X402PaymentMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -159,6 +160,21 @@ ALGORAND_USDC_ASSET_ID_TESTNET = int(os.getenv("ALGORAND_USDC_ASSET_ID_TESTNET",
 ALGORAND_SWAP_MAX_RETRIES = int(os.getenv("ALGORAND_SWAP_MAX_RETRIES", 3))
 ALGORAND_SWAP_WAIT_ROUNDS = int(os.getenv("ALGORAND_SWAP_WAIT_ROUNDS", 4))
 ALGORAND_SWAP_RETRY_DELAY_SECONDS = float(os.getenv("ALGORAND_SWAP_RETRY_DELAY_SECONDS", 1.5))
+
+# 🧾 x402 micropayments
+X402_ENABLED = os.getenv("X402_ENABLED", "false").lower() == "true"
+X402_PAYTO_ADDRESS = os.getenv("X402_PAYTO_ADDRESS", "")
+X402_DEFAULT_PRICE = os.getenv("X402_DEFAULT_PRICE", "0")
+X402_PRICING_RULES = os.getenv("X402_PRICING_RULES", "{}")
+X402_CALLBACK_URL = os.getenv("X402_CALLBACK_URL", "")
+X402_NONCE_TTL_SECONDS = int(os.getenv("X402_NONCE_TTL_SECONDS", 300))
+X402_CURRENCY = os.getenv("X402_CURRENCY", "USDC")
+X402_NETWORK = os.getenv("X402_NETWORK", "algorand")
+X402_RECEIPT_VERIFIER = os.getenv("X402_RECEIPT_VERIFIER", "")
+X402_CACHE_ALIAS = os.getenv("X402_CACHE_ALIAS", "default")
+_x402_asset_id = os.getenv("X402_ASSET_ID", "")
+X402_ASSET_ID = int(_x402_asset_id) if _x402_asset_id else None
+X402_ASSET_DECIMALS = int(os.getenv("X402_ASSET_DECIMALS", 6))
 
 # Celery
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")

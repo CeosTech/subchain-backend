@@ -11,6 +11,7 @@ This codebase underpins our submission to the **Algorand Startup Challenge**. Ou
 - **Operational muscle** – Background jobs cover trial expirations, renewals, and payment retries; event logs keep analytics and external systems in sync.
 - **Customer-first notifications** – Email notifications (SMS/webhooks ready) communicate state changes to users and operators automatically.
 - **Checkout sessions** – Secure, signed sessions allow front-ends to start subscriptions with wallet confirmation handled server-side.
+- **x402 micropayments ready** – Optional HTTP 402 paywall lets you charge in USDC per endpoint call while keeping Algorand subscriptions untouched.
 
 ## Architecture Overview
 
@@ -32,7 +33,7 @@ This codebase underpins our submission to the **Algorand Startup Challenge**. Ou
   - `contracts/subscription_contract.py` – PyTeal smart contract scaffolding for on-chain subscription state.
 - `notifications` – Notification templates and dispatcher (email today, SMS/webhooks tomorrow).
 - `webhooks` – Endpoints for external confirmations (e.g., Algorand explorers or partner services).
-- `currency`, `integrations`, `analytics` – extension points for FX data, partner APIs, and usage dashboards.
+- `currency`, `integrations`, `analytics` – extension points for FX data, partner APIs, usage dashboards, and now the reusable x402 payment middleware.
 
 ## Getting Started
 
@@ -58,6 +59,7 @@ The `.env.example` file documents all configuration. Key values to review before
 | --- | --- |
 | **Algorand node** | `ALGOD_ADDRESS`, `ALGOD_TOKEN`, `ALGORAND_NETWORK`, `ALGORAND_USDC_ASSET_ID_TESTNET`, `ALGORAND_USDC_ASSET_ID_MAINNET` |
 | **Treasury & swaps** | `SUBCHAIN_TREASURY_WALLET_ADDRESS`, `ALGORAND_ACCOUNT_ADDRESS`, `ALGORAND_ACCOUNT_MNEMONIC`, `ALGORAND_DEPLOYER_PRIVATE_KEY`, `PLATFORM_FEE_WALLET_ADDRESS`, `PLATFORM_FEE_PERCENT`, `ALGORAND_SWAP_MAX_RETRIES`, `ALGORAND_SWAP_WAIT_ROUNDS`, `ALGORAND_SWAP_RETRY_DELAY_SECONDS`, `TINYMAN_SWAP_SLIPPAGE` |
+| **Micropayments (x402)** | `X402_ENABLED`, `X402_PAYTO_ADDRESS`, `X402_DEFAULT_PRICE`, `X402_PRICING_RULES`, `X402_RECEIPT_VERIFIER`, `X402_CALLBACK_URL`, `X402_NONCE_TTL_SECONDS`, `X402_CURRENCY`, `X402_NETWORK`, `X402_CACHE_ALIAS`, `X402_ASSET_ID`, `X402_ASSET_DECIMALS` |
 | **Webhooks** | `WEBHOOK_SECRET` |
 | **Celery** | `CELERY_BROKER_URL`, `CELERY_RESULT_BACKEND`, `CELERY_TASK_ALWAYS_EAGER` (optional for local dev) |
 | **NFT minting (optional)** | `NFT_CREATOR_ADDRESS`, `NFT_CREATOR_MNEMONIC` |
@@ -95,6 +97,17 @@ Swagger/OpenAPI docs are available at `/swagger/` once the server is running.
 - **Founder Insights dashboard** – Visit `/admin/founder-insights/` for MRR, churn, and swap volume snapshots (admin login required).
 - **Smart contract artifacts** – Generate TEAL for a plan via `python manage.py shell -c "from algorand.contracts.subscription_contract import SubscriptionContractConfig, get_teal_sources; print(get_teal_sources(SubscriptionContractConfig(plan_id=1, price_micro_algo=1000000, renew_interval_rounds=1000, treasury_address='YOURADDRESS')))"` then compile/deploy with the helpers in `algorand.utils`.
 - **Celery worker** – Background tasks (webhook swap processing) require `celery -A config worker -l info`; set `CELERY_BROKER_URL`/`CELERY_RESULT_BACKEND` in `.env` (Redis recommended).
+
+### x402 Micropayments
+
+- Manage pay-per-call pricing via `/api/integrations/x402/pricing-rules/` (CRUD) and inspect receipts with `/api/integrations/x402/receipts/`.
+- Middleware `integrations.middleware.x402.X402PaymentMiddleware` issues HTTP 402 challenges, validates receipts, and records `PaymentReceipt` entries for replay protection.
+- `integrations/verifiers/algorand.verify_receipt` validates USDC transfers on Algorand against your treasury wallet, ready to customize for mainnet/testnet.
+- Django admin surfaces pricing rules and receipts so operators can audit payments without leaving the dashboard.
+- Front-ends can listen for `402 Payment Required`, trigger a wallet payment, then retry the request with the `X-402-Receipt` header for a seamless user experience.
+- Tenants peuvent maintenant créer leurs propres liens (`/api/integrations/x402/links/`) et widgets (`/api/integrations/x402/widgets/`) avec `pay_to_address` et `platform_fee_percent` personnalisés : chaque ressource génère automatiquement une route publique `/paywall/tenant/{id}/links|widgets/{slug}/` et un `PaymentLinkEvent` détaillant commission et net reversé.
+- Les packs de crédits sont gérés via `/api/integrations/x402/credit-plans/`, avec suivi des abonnés (`/credit-subscriptions/`) et de la consommation (`/credit-usage/`). L’endpoint public `/paywall/tenant/{id}/credits/{slug}/` crédite automatiquement les comptes clients après paiement tout en appliquant la commission plateforme.
+- Une fois les crédits attribués, les équipes peuvent décrémenter le solde via `POST /api/integrations/x402/credit-subscriptions/{id}/consume/` pour tracer la consommation réelle côté backend.
 
 ## Testing
 

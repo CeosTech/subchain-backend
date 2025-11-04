@@ -27,4 +27,7 @@ urlpatterns = [
 
     # Intégrations (à venir)
     path("api/integrations/", include("integrations.urls")),
+
+    # Paywall public endpoints
+    path("paywall/", include("integrations.paywall_urls")),
 ]
