@@ -199,3 +199,5 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
