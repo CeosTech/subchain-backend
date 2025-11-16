@@ -62,3 +62,7 @@ class PasswordResetToken(models.Model):
 
     def __str__(self):
         return f"Reset token for {self.user.email}"
+
+    def is_expired(self, validity_hours=1):
+        expiry_time = self.created_at + timezone.timedelta(hours=validity_hours)
+        return timezone.now() > expiry_time

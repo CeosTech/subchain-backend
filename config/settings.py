@@ -1,14 +1,16 @@
 import os
 from pathlib import Path
 from datetime import timedelta
+from django.core.exceptions import ImproperlyConfigured
 
 # 📁 BASE DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 SÉCURITÉ
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key")
-DEBUG = True
-ALLOWED_HOSTS = ["*"]
+DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+allowed_hosts_env = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(",") if host.strip()]
 
 # 🧩 APPS
 INSTALLED_APPS = [
@@ -74,13 +76,30 @@ TEMPLATES = [
     },
 ]
 
-# 🗄️ DATABASE (par défaut SQLite, pour dev)
+# 🗄️ DATABASE (SQLite par défaut, Postgres via DATABASE_URL)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    from urllib.parse import urlparse
+
+    parsed_db_url = urlparse(DATABASE_URL)
+    if parsed_db_url.scheme not in ("postgres", "postgresql"):
+        raise ImproperlyConfigured("Unsupported database scheme in DATABASE_URL")
+
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": parsed_db_url.path.lstrip("/"),
+        "USER": parsed_db_url.username,
+        "PASSWORD": parsed_db_url.password,
+        "HOST": parsed_db_url.hostname,
+        "PORT": parsed_db_url.port or "",
+    }
 
 # 👤 USER MODEL
 AUTH_USER_MODEL = "accounts.User"
@@ -100,11 +119,17 @@ USE_TZ = True
 # 📁 STATIC & MEDIA
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # 🌐 CORS
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+if not DEBUG:
+    allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+    CORS_ALLOWED_ORIGINS = [
+        origin.strip() for origin in allowed_origins.split(",") if origin.strip()
+    ]
 
 # 🔑 JWT AUTH
 REST_FRAMEWORK = {
@@ -126,8 +151,10 @@ SIMPLE_JWT = {
 }
 
 # 📧 EMAIL
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "no-reply@subchain.ai"
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@subchain.ai")
 FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
 
 # 📚 SWAGGER
