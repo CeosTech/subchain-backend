@@ -7,6 +7,7 @@ from .views import (
     EventLogViewSet,
     InvoiceViewSet,
     PlanViewSet,
+    PlanPublicRetrieveView,
     SubscriptionViewSet,
 )
 
@@ -19,5 +20,6 @@ router.register(r"events", EventLogViewSet, basename="event")
 router.register(r"checkout-sessions", CheckoutSessionViewSet, basename="checkoutsession")
 
 urlpatterns = [
+    path("plans/public/<slug:code>/", PlanPublicRetrieveView.as_view(), name="plan-public-detail"),
     path("", include(router.urls)),
 ]

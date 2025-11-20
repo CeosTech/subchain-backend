@@ -1,11 +1,18 @@
+import base64
+import io
+
+from django.conf import settings
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.views import APIView
 
 from payments.services import SwapExecutionError
 from payments.models import TransactionType
+import qrcode
 from .models import (
     CheckoutSession,
     CheckoutSessionStatus,
@@ -23,6 +30,7 @@ from .serializers import (
     EventLogSerializer,
     InvoiceSerializer,
     PlanSerializer,
+    PublicPlanSerializer,
     SubscriptionSerializer,
     PaymentIntentSerializer,
 )
@@ -79,6 +87,16 @@ def execute_subscription_checkout(
     return subscription, invoice, payment_intent, payment_error
 
 
+class PlanPublicRetrieveView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, code: str):
+        plan = get_object_or_404(Plan, code=code, is_active=True)
+        plan_data = PublicPlanSerializer(plan, context={"request": request}).data
+        share_url = f"{settings.CHECKOUT_BASE_URL.rstrip('/')}/pay?plan={plan.code}"
+        return Response({"plan": plan_data, "share_url": share_url})
+
+
 class PlanViewSet(viewsets.ModelViewSet):
     queryset = Plan.objects.all()
     serializer_class = PlanSerializer
@@ -105,6 +123,28 @@ class PlanViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    def share(self, request, pk=None):
+        plan = self.get_object()
+        if not request.user.is_staff and plan.created_by_id != request.user.id:
+            raise PermissionDenied("You can only share plans you created.")
+
+        share_url = f"{settings.CHECKOUT_BASE_URL.rstrip('/')}/pay?plan={plan.code}"
+        qr = qrcode.QRCode(box_size=4, border=2)
+        qr.add_data(share_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+        qr_base64 = base64.b64encode(buffer.getvalue()).decode("ascii")
+
+        return Response(
+            {
+                "share_url": share_url,
+                "qr_code": f"data:image/png;base64,{qr_base64}",
+            }
+        )
 
 
 class SubscriptionViewSet(viewsets.ModelViewSet):

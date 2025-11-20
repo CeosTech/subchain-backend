@@ -55,6 +55,21 @@ class PlanSerializer(serializers.ModelSerializer):
         read_only_fields = ("created_at", "updated_at", "created_by")
 
 
+class PublicPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = (
+            "code",
+            "name",
+            "description",
+            "amount",
+            "currency",
+            "interval",
+            "trial_days",
+            "metadata",
+        )
+
+
 class CouponSerializer(serializers.ModelSerializer):
     created_by = serializers.ReadOnlyField(source="created_by_id")
 
