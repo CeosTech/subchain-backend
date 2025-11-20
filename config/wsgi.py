@@ -61,9 +61,48 @@ def _migrate_if_requested():
         print("[migrate] database up to date at startup")
 
 
+def _create_superuser_if_requested():
+    """
+    Permet de créer un superuser sans shell Render.
+    Requiert AUTO_CREATE_SUPERUSER=true + DJANGO_SUPERUSER_EMAIL/PASSWORD/WALLET_ADDRESS.
+    """
+    auto_flag = os.getenv("AUTO_CREATE_SUPERUSER", "").strip().lower()
+    if auto_flag not in ("1", "true", "yes"):
+        return
+
+    email = os.getenv("DJANGO_SUPERUSER_EMAIL", "").strip()
+    password = os.getenv("DJANGO_SUPERUSER_PASSWORD", "").strip()
+    wallet = os.getenv("DJANGO_SUPERUSER_WALLET_ADDRESS", "").strip()
+    username = os.getenv("DJANGO_SUPERUSER_USERNAME", "").strip() or (email.split("@")[0] if email else "")
+
+    if not email or not password or not wallet:
+        print("[superuser] missing DJANGO_SUPERUSER_EMAIL/PASSWORD/WALLET_ADDRESS")
+        return
+
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    if User.objects.filter(email=email).exists():
+        print("[superuser] account already exists, skipping creation")
+        return
+
+    try:
+        User.objects.create_superuser(
+            email=email,
+            password=password,
+            username=username or email,
+            wallet_address=wallet,
+        )
+    except Exception as exc:  # pragma: no cover - defensive
+        print(f"[superuser] failed to create: {exc}")
+    else:
+        print(f"[superuser] created admin user {email}")
+
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 _migrate_if_requested()
+_create_superuser_if_requested()
 _collectstatic_if_requested()
 
 application = get_wsgi_application()

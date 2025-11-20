@@ -2,6 +2,7 @@
 
 import logging
 
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
@@ -232,6 +233,17 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if getattr(settings, "SKIP_EMAIL_VERIFICATION", False):
+            user.is_verified = True
+            user.save(update_fields=["is_verified"])
+            return Response(
+                {
+                    "detail": "User created. Email verification skipped for demo mode.",
+                    "user": UserSerializer(user).data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
         # 2) Création du token de vérification
         try:
             token_obj = EmailVerification.objects.create(user=user)
@@ -287,7 +299,7 @@ class LoginView(APIView):
                 {"detail": "Invalid credentials"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-        if not user.is_verified:
+        if not getattr(settings, "SKIP_EMAIL_VERIFICATION", False) and not user.is_verified:
             return Response(
                 {
                     "detail": "Email not verified. Please verify your email to continue."
