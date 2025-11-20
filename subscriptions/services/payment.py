@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import logging
 from decimal import Decimal
 from typing import Optional
 
 from django.db import transaction
 from django.utils import timezone
+from django.conf import settings
 
 from payments.models import CurrencyChoices as PaymentCurrencyChoices
 from payments.models import Transaction, TransactionStatus, TransactionType
 from payments.utils import calculate_fees
+from payments.services import disburse_transaction_funds
 from subscriptions.models import Invoice, InvoiceStatus, PaymentIntent, PaymentIntentStatus
 from subscriptions.services.events import EventRecorder
 from subscriptions.services.notification import NotificationDispatcher
@@ -31,6 +34,7 @@ class PaymentIntentService:
         self._swap_error_class = swap_error_class
         self._now = now or timezone.now
         self._unit_quantize = Decimal(unit_amount_quantize)
+        self._logger = logging.getLogger(__name__)
 
     def process_invoice(self, invoice: Invoice, *, transaction_type: TransactionType = TransactionType.SUBSCRIPTION) -> PaymentIntent:
         with transaction.atomic():
@@ -103,6 +107,8 @@ class PaymentIntentService:
         invoice.paid_at = self._now()
         invoice.save(update_fields=["status", "paid_at"])
 
+        self._disburse_payout(invoice, txn)
+
         self.events.record(
             "invoice.paid",
             resource_type="invoice",
@@ -148,6 +154,35 @@ class PaymentIntentService:
             net_amount=net_amount.quantize(self._unit_quantize),
         )
         return txn
+
+    def _disburse_payout(self, invoice: Invoice, transaction: Transaction) -> None:
+        subscription = getattr(invoice, "subscription", None)
+        if not subscription:
+            return
+
+        plan = getattr(subscription, "plan", None)
+        if not plan:
+            return
+
+        payout_address = plan.payout_wallet_address or getattr(settings, "SUBCHAIN_TREASURY_WALLET_ADDRESS", "")
+        if not payout_address:
+            return
+
+        platform_wallet = getattr(settings, "PLATFORM_FEE_WALLET_ADDRESS", "")
+        try:
+            disburse_transaction_funds(
+                transaction,
+                payout_address=payout_address,
+                platform_fee_address=platform_wallet,
+            )
+        except Exception as exc:  # pragma: no cover - payout errors logged and surfaced via events
+            self._logger.exception("Failed to disburse payout for invoice %s: %s", invoice.id, exc)
+            self.events.record(
+                "invoice.payout_failed",
+                resource_type="invoice",
+                resource_id=invoice.id,
+                payload={"error": str(exc)},
+            )
 
     def _ensure_swap_components(self):
         if self._swap_executor is not None and self._swap_error_class is not None:

@@ -46,6 +46,7 @@ class PlanSerializer(serializers.ModelSerializer):
             "trial_days",
             "is_active",
             "metadata",
+            "payout_wallet_address",
             "created_by",
             "features",
             "price_tiers",
@@ -67,6 +68,7 @@ class PublicPlanSerializer(serializers.ModelSerializer):
             "interval",
             "trial_days",
             "metadata",
+            "payout_wallet_address",
         )
 
 

@@ -38,6 +38,8 @@ class Transaction(models.Model):
     algo_tx_id = models.CharField(max_length=128, blank=True, null=True)
     usdc_received = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     swap_completed = models.BooleanField(default=False)
+    payout_tx_id = models.CharField(max_length=128, blank=True, null=True)
+    platform_fee_tx_id = models.CharField(max_length=128, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)

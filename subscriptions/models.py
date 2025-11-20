@@ -69,6 +69,7 @@ class Plan(models.Model):
     trial_days = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     metadata = models.JSONField(default=dict, blank=True)
+    payout_wallet_address = models.CharField(max_length=255, blank=True, default="")
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

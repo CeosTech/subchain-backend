@@ -122,7 +122,10 @@ class PlanViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        payout_address = serializer.validated_data.get("payout_wallet_address")
+        if not payout_address:
+            payout_address = getattr(self.request.user, "wallet_address", "")
+        serializer.save(created_by=self.request.user, payout_wallet_address=payout_address or "")
 
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def share(self, request, pk=None):

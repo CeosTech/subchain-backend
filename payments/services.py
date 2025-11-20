@@ -10,8 +10,15 @@ from django.utils import timezone
 
 from algosdk import mnemonic
 
-from algorand.utils import TinymanSwapError, perform_swap_algo_to_usdc
-from .models import Transaction, TransactionStatus
+from algorand.utils import TinymanSwapError, perform_swap_algo_to_usdc, get_algod_client
+try:
+    from algosdk.future.transaction import PaymentTxn, wait_for_confirmation
+except ModuleNotFoundError:  # pragma: no cover - SDK compatibility
+    from algosdk import transaction as _transaction
+
+    PaymentTxn = _transaction.PaymentTxn
+    wait_for_confirmation = _transaction.wait_for_confirmation
+from .models import Transaction, TransactionStatus, CurrencyChoices
 
 logger = logging.getLogger(__name__)
 
@@ -123,3 +130,78 @@ def _sleep(duration: float) -> None:
     import time
 
     time.sleep(duration)
+
+
+def _send_algo_payment(receiver: str, amount: Decimal, *, note: str = "") -> str:
+    if amount <= 0:
+        raise ValueError("Amount must be positive")
+
+    _ensure_credentials()
+    algod_client = get_algod_client()
+    params = algod_client.suggested_params()
+    params.flat_fee = True
+    params.fee = max(params.min_fee, 1000)
+
+    micro_amount = int((amount * Decimal("1000000")).quantize(Decimal("1")))
+    if micro_amount <= 0:
+        raise ValueError("Amount too small for transfer")
+
+    note_bytes = note.encode("utf-8")[:1024] if note else None
+    txn = PaymentTxn(sender=ACCOUNT_ADDRESS, sp=params, receiver=receiver, amt=micro_amount, note=note_bytes)
+    signed = txn.sign(ACCOUNT_PRIVATE_KEY)
+    tx_id = algod_client.send_transaction(signed)
+    wait_rounds = getattr(settings, "ALGORAND_SWAP_WAIT_ROUNDS", 4)
+    wait_for_confirmation(algod_client, tx_id, wait_rounds)
+    return tx_id
+
+
+def disburse_transaction_funds(
+    transaction: Transaction,
+    *,
+    payout_address: str,
+    platform_fee_address: str | None = None,
+    allow_partial: bool = True,
+) -> dict:
+    """Send net amount to payout_address and platform fee to the configured address."""
+    results: dict[str, str] = {}
+
+    if transaction.currency != CurrencyChoices.ALGO:
+        raise ValueError("Only ALGO payouts are supported for now")
+
+    errors = []
+    if payout_address and transaction.net_amount > 0:
+        try:
+            tx_id = _send_algo_payment(
+                payout_address,
+                transaction.net_amount,
+                note=f"payout:{transaction.id}",
+            )
+            results["payout_tx_id"] = tx_id
+            transaction.payout_tx_id = tx_id
+        except Exception as exc:  # pragma: no cover - network errors handled at runtime
+            errors.append(str(exc))
+            if not allow_partial:
+                raise
+
+    fee_address = platform_fee_address or getattr(settings, "PLATFORM_FEE_WALLET_ADDRESS", "")
+    if fee_address and transaction.platform_fee > 0:
+        try:
+            tx_id = _send_algo_payment(
+                fee_address,
+                transaction.platform_fee,
+                note=f"fee:{transaction.id}",
+            )
+            results["platform_fee_tx_id"] = tx_id
+            transaction.platform_fee_tx_id = tx_id
+        except Exception as exc:  # pragma: no cover
+            errors.append(str(exc))
+            if not allow_partial:
+                raise
+
+    if results:
+        transaction.save(update_fields=["payout_tx_id", "platform_fee_tx_id"])
+
+    if errors and not allow_partial:
+        raise RuntimeError("; ".join(errors))
+
+    return results
